@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"sanbright/go_shortener/internal/app/service"
+	"strings"
 )
 
 type PostShortLinkHandler struct {
@@ -17,6 +18,12 @@ func NewPostShortLinkHandler(service *service.ShortLinkService) *PostShortLinkHa
 func (handler *PostShortLinkHandler) Handle(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		http.Error(writer, "Method not allowed!", http.StatusMethodNotAllowed)
+		return
+	}
+
+	uri := strings.TrimLeft(request.RequestURI, "/")
+	if len(uri) > 0 {
+		http.Error(writer, "Not found url", http.StatusBadRequest)
 		return
 	}
 
