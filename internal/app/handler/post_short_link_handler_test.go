@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -59,7 +60,7 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode: http.StatusMethodNotAllowed,
-				body:       "Method not allowed!\n",
+				body:       "Method not allowed!",
 				location:   "",
 			},
 		},
@@ -70,7 +71,7 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode: http.StatusBadRequest,
-				body:       "Not found url\n",
+				body:       "Not found url",
 				location:   "",
 			},
 		},
@@ -81,7 +82,11 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
 			response := httptest.NewRecorder()
 
-			handler.Handle(response, request)
+			context, _ := gin.CreateTestContext(response)
+			context.AddParam("short", strings.TrimLeft(tt.request, "/"))
+			context.Request = request
+
+			handler.Handle(context)
 
 			result := response.Result()
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/dchest/uniuri"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -42,6 +43,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			want: want{
 				statusCode: http.StatusTemporaryRedirect,
 				body:       "<a href=\"https:\\\\testing.com\\ksjadkjas\">Temporary Redirect</a>.\n\n",
+				location:   "https:\\\\testing.com\\ksjadkjas",
 			},
 		},
 		{
@@ -51,6 +53,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			want: want{
 				statusCode: http.StatusTemporaryRedirect,
 				body:       "<a href=\"https:\\\\google.com\">Temporary Redirect</a>.\n\n",
+				location:   "https:\\\\google.com",
 			},
 		},
 		{
@@ -60,7 +63,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode: http.StatusMethodNotAllowed,
-				body:       "Method not allowed!\n",
+				body:       "Method not allowed!",
 				location:   "",
 			},
 		},
@@ -71,7 +74,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode: http.StatusBadRequest,
-				body:       "not found by short link: testesttest\n",
+				body:       "not found by short link: testesttest",
 				location:   "",
 			},
 		},
@@ -80,18 +83,21 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
+
 			response := httptest.NewRecorder()
+			context, _ := gin.CreateTestContext(response)
+			context.AddParam("id", strings.TrimLeft(tt.request, "/"))
+			context.Request = request
 
-			handler.Handle(response, request)
+			handler.Handle(context)
 
-			result := response.Result()
+			assert.Equal(t, tt.want.statusCode, response.Code)
 
-			assert.Equal(t, tt.want.statusCode, result.StatusCode)
-
-			body, err := io.ReadAll(result.Body)
+			body, err := io.ReadAll(response.Body)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want.body, string(body))
+			assert.Equal(t, response.Header().Get("Location"), tt.want.location)
 		})
 	}
 }

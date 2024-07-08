@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"sanbright/go_shortener/internal/app/service"
-	"strings"
 )
 
 type GetShortLinkHandler struct {
@@ -14,20 +14,22 @@ func NewGetShortLinkHandler(service *service.ShortLinkService) *GetShortLinkHand
 	return &GetShortLinkHandler{service: service}
 }
 
-func (handler *GetShortLinkHandler) Handle(writer http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodGet {
-		http.Error(writer, "Method not allowed!", http.StatusMethodNotAllowed)
+func (handler *GetShortLinkHandler) Handle(ctx *gin.Context) {
+	if ctx.Request.Method != http.MethodGet {
+		ctx.String(http.StatusMethodNotAllowed, "Method not allowed!")
+		ctx.Abort()
 		return
 	}
 
-	shortLinkEntity, err := handler.service.GetByShortLink(strings.TrimLeft(request.RequestURI, "/"))
+	shortLinkEntity, err := handler.service.GetByShortLink(ctx.Param("id"))
 
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		ctx.String(http.StatusBadRequest, "%s", err.Error())
+		ctx.Abort()
 		return
 	}
 
-	http.Redirect(writer, request, shortLinkEntity.Url, http.StatusTemporaryRedirect)
+	ctx.Redirect(http.StatusTemporaryRedirect, shortLinkEntity.Url)
 
 	return
 }

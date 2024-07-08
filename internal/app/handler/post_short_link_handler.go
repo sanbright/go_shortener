@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"sanbright/go_shortener/internal/app/service"
@@ -15,37 +16,36 @@ func NewPostShortLinkHandler(service *service.ShortLinkService) *PostShortLinkHa
 	return &PostShortLinkHandler{service: service}
 }
 
-func (handler *PostShortLinkHandler) Handle(writer http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPost {
-		http.Error(writer, "Method not allowed!", http.StatusMethodNotAllowed)
+func (handler *PostShortLinkHandler) Handle(ctx *gin.Context) {
+	if ctx.Request.Method != http.MethodPost {
+		ctx.String(http.StatusMethodNotAllowed, "Method not allowed!")
+		ctx.Abort()
 		return
 	}
 
-	uri := strings.TrimLeft(request.RequestURI, "/")
+	uri := strings.TrimLeft(ctx.Request.RequestURI, "/")
 	if len(uri) > 0 {
-		http.Error(writer, "Not found url", http.StatusBadRequest)
+		ctx.String(http.StatusBadRequest, "Not found url")
 		return
 	}
 
-	url, err := io.ReadAll(request.Body)
+	url, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		ctx.String(http.StatusBadRequest, "%s", err.Error())
+		ctx.Abort()
 		return
 	}
 
 	shortLinkEntity, err := handler.service.Add(string(url))
 
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		ctx.String(http.StatusBadRequest, "%s", err.Error())
+		ctx.Abort()
 		return
 	}
 
-	writer.WriteHeader(http.StatusCreated)
-	if _, err = writer.Write([]byte("http://" + request.Host + "/" + shortLinkEntity.ShortLink)); err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-	}
-
-	writer.Header().Set("Content-type", "text/plain")
+	ctx.Header("Content-type", "text/plain")
+	ctx.String(http.StatusCreated, "http://%s/%s", ctx.Request.Host, shortLinkEntity.ShortLink)
 
 	return
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"sanbright/go_shortener/internal/app/generator"
 	handler2 "sanbright/go_shortener/internal/app/handler"
@@ -9,18 +10,17 @@ import (
 )
 
 func main() {
-	serveMux := http.NewServeMux()
-
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := generator.NewShortLinkGenerator()
 	shortLinkService := service.NewShortLinkService(shortLinkRepository, shortLinkGenerator)
 	getHandler := handler2.NewGetShortLinkHandler(shortLinkService)
 	postHandler := handler2.NewPostShortLinkHandler(shortLinkService)
 
-	serveMux.HandleFunc(`/`, postHandler.Handle)
-	serveMux.HandleFunc(`/{id}`, getHandler.Handle)
+	ginRouter := gin.Default()
+	ginRouter.POST(`/`, postHandler.Handle)
+	ginRouter.GET(`/:id`, getHandler.Handle)
 
-	err := http.ListenAndServe(`localhost:8083`, serveMux)
+	err := http.ListenAndServe(`localhost:8080`, ginRouter)
 
 	if err != nil {
 		panic(err)
