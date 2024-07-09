@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/dchest/uniuri"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -17,8 +16,8 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 
-	shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas")
-	shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com")
+	_, _ = shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas")
+	_, _ = shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com")
 	shortLinkGenerator := NewMockShortLinkGenerator()
 	handler := NewGetShortLinkHandler(service.NewShortLinkService(shortLinkRepository, shortLinkGenerator))
 
@@ -100,8 +99,4 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			assert.Equal(t, response.Header().Get("Location"), tt.want.location)
 		})
 	}
-}
-
-func UniqGenerate() string {
-	return uniuri.NewLen(10)
 }

@@ -20,10 +20,28 @@ type ExternalURL struct {
 	URL string
 }
 
-func NewConfig() *Config {
+func NewConfig(serverAddress string, baseUrl string) *Config {
+	if len(serverAddress) == 0 {
+		serverAddress = "localhost:8080"
+	}
+
+	if len(baseUrl) == 0 {
+		baseUrl = "http://localhost:8080"
+	}
+
+	var domainAndPort DomainAndPort
+	var externalUrl ExternalURL
+
+	_ = externalUrl.Set(baseUrl)
+	err := domainAndPort.Set(serverAddress)
+
+	if err != nil {
+		return nil
+	}
+
 	return &Config{
-		DomainAndPort: DomainAndPort{Domain: "localhost", Port: "8080"},
-		BaseUrl:       ExternalURL{URL: "http://localhost:8080"},
+		DomainAndPort: domainAndPort,
+		BaseUrl:       externalUrl,
 	}
 }
 
