@@ -27,7 +27,7 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := NewMockShortLinkGenerator()
-	handler := NewPostShortLinkHandler(service.NewShortLinkService(shortLinkRepository, shortLinkGenerator))
+	handler := NewPostShortLinkHandler(service.NewShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com")
 
 	type want struct {
 		statusCode int
