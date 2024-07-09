@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	DomainAndPort DomainAndPort
-	BaseUrl       ExternalURL
+	BaseURL       ExternalURL
 }
 
 type DomainAndPort struct {
@@ -20,19 +20,19 @@ type ExternalURL struct {
 	URL string
 }
 
-func NewConfig(serverAddress string, baseUrl string) *Config {
+func NewConfig(serverAddress string, baseURL string) *Config {
 	if len(serverAddress) == 0 {
 		serverAddress = "localhost:8080"
 	}
 
-	if len(baseUrl) == 0 {
-		baseUrl = "http://localhost:8080"
+	if len(baseURL) == 0 {
+		baseURL = "http://localhost:8080"
 	}
 
 	var domainAndPort DomainAndPort
-	var externalUrl ExternalURL
+	var externalURL ExternalURL
 
-	_ = externalUrl.Set(baseUrl)
+	_ = externalURL.Set(baseURL)
 	err := domainAndPort.Set(serverAddress)
 
 	if err != nil {
@@ -41,7 +41,7 @@ func NewConfig(serverAddress string, baseUrl string) *Config {
 
 	return &Config{
 		DomainAndPort: domainAndPort,
-		BaseUrl:       externalUrl,
+		BaseURL:       externalURL,
 	}
 }
 

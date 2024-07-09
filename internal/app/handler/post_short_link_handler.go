@@ -10,11 +10,11 @@ import (
 
 type PostShortLinkHandler struct {
 	service *service.ShortLinkService
-	baseUrl string
+	baseURL string
 }
 
-func NewPostShortLinkHandler(service *service.ShortLinkService, baseUrl string) *PostShortLinkHandler {
-	return &PostShortLinkHandler{service: service, baseUrl: baseUrl}
+func NewPostShortLinkHandler(service *service.ShortLinkService, baseURL string) *PostShortLinkHandler {
+	return &PostShortLinkHandler{service: service, baseURL: baseURL}
 }
 
 func (handler *PostShortLinkHandler) Handle(ctx *gin.Context) {
@@ -46,7 +46,5 @@ func (handler *PostShortLinkHandler) Handle(ctx *gin.Context) {
 	}
 
 	ctx.Header("Content-type", "text/plain")
-	ctx.String(http.StatusCreated, "%s/%s", handler.baseUrl, shortLinkEntity.ShortLink)
-
-	return
+	ctx.String(http.StatusCreated, "%s/%s", handler.baseURL, shortLinkEntity.ShortLink)
 }

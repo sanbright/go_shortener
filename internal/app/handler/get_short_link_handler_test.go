@@ -67,7 +67,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name:    "Undefined Url",
+			name:    "Undefined URL",
 			method:  http.MethodGet,
 			request: "/testesttest",
 			body:    "",

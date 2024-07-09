@@ -65,7 +65,7 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name:    "Undefined Url",
+			name:    "Undefined URL",
 			method:  http.MethodPost,
 			request: "/testesttest",
 			body:    "",
@@ -93,6 +93,7 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 
 			body, err := io.ReadAll(result.Body)
+			_ = result.Body.Close()
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want.body, string(body))

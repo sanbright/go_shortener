@@ -29,7 +29,5 @@ func (handler *GetShortLinkHandler) Handle(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Redirect(http.StatusTemporaryRedirect, shortLinkEntity.Url)
-
-	return
+	ctx.Redirect(http.StatusTemporaryRedirect, shortLinkEntity.URL)
 }
