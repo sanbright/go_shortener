@@ -1,9 +1,15 @@
 package config
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"strings"
+)
+
+const (
+	DefaultServerAddress string = "localhost:8080"
+	DefaultBaseURL       string = "http://localhost:8080"
 )
 
 type Config struct {
@@ -20,29 +26,37 @@ type ExternalURL struct {
 	URL string
 }
 
-func NewConfig(serverAddress string, baseURL string) *Config {
+func NewConfig(serverAddress string, baseURL string) (*Config, error) {
+
 	if len(serverAddress) == 0 {
-		serverAddress = "localhost:8080"
+		serverAddress = DefaultServerAddress
 	}
 
 	if len(baseURL) == 0 {
-		baseURL = "http://localhost:8080"
+		baseURL = DefaultBaseURL
 	}
 
 	var domainAndPort DomainAndPort
 	var externalURL ExternalURL
 
-	_ = externalURL.Set(baseURL)
-	err := domainAndPort.Set(serverAddress)
-
+	err := externalURL.Set(baseURL)
 	if err != nil {
-		return nil
+		return nil, err
 	}
+
+	err = domainAndPort.Set(serverAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	flag.Var(&domainAndPort, "a", "listen host and port")
+	flag.Var(&externalURL, "b", "domain in short link")
+	flag.Parse()
 
 	return &Config{
 		DomainAndPort: domainAndPort,
 		BaseURL:       externalURL,
-	}
+	}, nil
 }
 
 func (dap *DomainAndPort) String() string {
@@ -50,16 +64,6 @@ func (dap *DomainAndPort) String() string {
 	arr = append(arr, dap.Domain, dap.Port)
 
 	return fmt.Sprint(strings.Join(arr, ":"))
-}
-
-func (eu *ExternalURL) String() string {
-	return eu.URL
-}
-
-func (eu *ExternalURL) Set(value string) error {
-	eu.URL = value
-
-	return nil
 }
 
 func (dap *DomainAndPort) Set(value string) error {
@@ -70,6 +74,16 @@ func (dap *DomainAndPort) Set(value string) error {
 
 	dap.Domain = domain
 	dap.Port = port
+
+	return nil
+}
+
+func (eu *ExternalURL) String() string {
+	return eu.URL
+}
+
+func (eu *ExternalURL) Set(value string) error {
+	eu.URL = value
 
 	return nil
 }

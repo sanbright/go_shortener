@@ -22,13 +22,7 @@ func (service *ShortLinkService) GetByShortLink(shortLink string) (*entity.Short
 func (service *ShortLinkService) Add(url string) (*entity.ShortLinkEntity, error) {
 	shortLink := service.generator.UniqGenerate()
 
-	shortLinkEntity, err := service.repository.FindByShortLink(shortLink)
-
-	if err == nil && shortLinkEntity != nil {
-		shortLink = service.generator.UniqGenerate()
-	}
-
-	shortLinkEntity, err = service.repository.Add(shortLink, url)
+	shortLinkEntity, err := service.repository.Add(shortLink, url)
 
 	if err != nil {
 		return nil, err

@@ -15,12 +15,6 @@ func NewGetShortLinkHandler(service *service.ShortLinkService) *GetShortLinkHand
 }
 
 func (handler *GetShortLinkHandler) Handle(ctx *gin.Context) {
-	if ctx.Request.Method != http.MethodGet {
-		ctx.String(http.StatusMethodNotAllowed, "Method not allowed!")
-		ctx.Abort()
-		return
-	}
-
 	shortLinkEntity, err := handler.service.GetByShortLink(ctx.Param("id"))
 
 	if err != nil {
@@ -28,6 +22,14 @@ func (handler *GetShortLinkHandler) Handle(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+
+	if shortLinkEntity == nil {
+		ctx.String(http.StatusNotFound, "Not found link")
+		ctx.Abort()
+		return
+	}
+
+	defer ctx.Request.Body.Close()
 
 	ctx.Redirect(http.StatusTemporaryRedirect, shortLinkEntity.URL)
 }

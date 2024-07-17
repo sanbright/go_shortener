@@ -1,15 +1,17 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 	"io"
-	"net/http"
-	"net/http/httptest"
-	"sanbright/go_shortener/internal/app/repository"
-	"sanbright/go_shortener/internal/app/service"
 	"strings"
 	"testing"
+
+	"net/http"
+	"net/http/httptest"
+
+	"sanbright/go_shortener/internal/app/repository"
+	"sanbright/go_shortener/internal/app/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 type MockShortLinkGenerator struct {
@@ -44,7 +46,18 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 		want        want
 	}{
 		{
-			name:    "Success Append ShortLink",
+			name:    "UsageMethodNotAllowed",
+			method:  http.MethodGet,
+			request: "/",
+			body:    "",
+			want: want{
+				statusCode: http.StatusMethodNotAllowed,
+				body:       "405 method not allowed",
+				location:   "",
+			},
+		},
+		{
+			name:    "SuccessAppendShortLink",
 			method:  http.MethodPost,
 			request: "/",
 			body:    "https://google.com/test",
@@ -54,24 +67,13 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name:    "Method invalid",
-			method:  http.MethodGet,
-			request: "/testesttest",
-			body:    "",
-			want: want{
-				statusCode: http.StatusMethodNotAllowed,
-				body:       "Method not allowed!",
-				location:   "",
-			},
-		},
-		{
-			name:    "Undefined URL",
+			name:    "UndefinedURL",
 			method:  http.MethodPost,
 			request: "/testesttest",
 			body:    "",
 			want: want{
-				statusCode: http.StatusBadRequest,
-				body:       "Not found url",
+				statusCode: http.StatusNotFound,
+				body:       "404 page not found",
 				location:   "",
 			},
 		},
@@ -86,17 +88,25 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			context.AddParam("short", strings.TrimLeft(tt.request, "/"))
 			context.Request = request
 
-			handler.Handle(context)
-
+			r := setupRouter()
+			r.POST(`/`, handler.Handle)
+			r.ServeHTTP(response, request)
 			result := response.Result()
 
-			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			if code := tt.want.statusCode; code != result.StatusCode {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, result.StatusCode, code)
+			}
 
 			body, err := io.ReadAll(result.Body)
-			_ = result.Body.Close()
+			defer result.Body.Close()
 
-			assert.NoError(t, err)
-			assert.Equal(t, tt.want.body, string(body))
+			if err != nil {
+				t.Errorf("%v: Error = '%v'", tt.name, err.Error())
+			}
+
+			if tb := tt.want.body; tb != string(body) {
+				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tb, string(body))
+			}
 		})
 	}
 }

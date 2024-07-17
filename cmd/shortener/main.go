@@ -1,36 +1,45 @@
 package main
 
 import (
-	"flag"
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"log"
 	"os"
+
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/handler"
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 	"sanbright/go_shortener/internal/config"
+
+	"github.com/gin-gonic/gin"
 )
 
+const ShortLinkLen int = 10
+
+func setupRouter() *gin.Engine {
+	r := gin.Default()
+	r.HandleMethodNotAllowed = true
+
+	return r
+}
+
 func main() {
-	configuration := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"))
-	flag.Var(&configuration.DomainAndPort, "a", "listen host and port")
-	flag.Var(&configuration.BaseURL, "b", "domain in short link")
-	flag.Parse()
+	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"))
+	if err != nil {
+		log.Fatalf("Fatal configuration error: %s", err.Error())
+	}
 
 	shortLinkRepository := repository.NewShortLinkRepository()
-	shortLinkGenerator := generator.NewShortLinkGenerator()
+	shortLinkGenerator := generator.NewShortLinkGenerator(ShortLinkLen)
 	shortLinkService := service.NewShortLinkService(shortLinkRepository, shortLinkGenerator)
 	getHandler := handler.NewGetShortLinkHandler(shortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(shortLinkService, configuration.BaseURL.URL)
 
-	ginRouter := gin.Default()
-	ginRouter.POST(`/`, postHandler.Handle)
-	ginRouter.GET(`/:id`, getHandler.Handle)
-
-	err := http.ListenAndServe(configuration.DomainAndPort.String(), ginRouter)
+	r := setupRouter()
+	r.GET(`/:id`, getHandler.Handle)
+	r.POST(`/`, postHandler.Handle)
+	err = r.Run(configuration.DomainAndPort.String())
 
 	if err != nil {
-		panic(err)
+		log.Fatalf("Fatal error: %s", err.Error())
 	}
 }

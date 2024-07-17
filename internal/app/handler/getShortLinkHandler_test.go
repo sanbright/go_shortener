@@ -1,23 +1,40 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 	"io"
-	"net/http"
-	"net/http/httptest"
-	"sanbright/go_shortener/internal/app/repository"
-	"sanbright/go_shortener/internal/app/service"
 	"strings"
 	"testing"
+
+	"net/http"
+	"net/http/httptest"
+
+	"sanbright/go_shortener/internal/app/repository"
+	"sanbright/go_shortener/internal/app/service"
+
+	"github.com/gin-gonic/gin"
 )
+
+func setupRouter() *gin.Engine {
+	r := gin.Default()
+	r.HandleMethodNotAllowed = true
+
+	return r
+}
 
 func TestGetShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 
-	_, _ = shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas")
-	_, _ = shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com")
+	_, err := shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas")
+	if err != nil {
+		t.Errorf("ShortLinkFixture: Error = '%v'", err.Error())
+	}
+
+	_, err = shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com")
+	if err != nil {
+		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
+	}
+
 	shortLinkGenerator := NewMockShortLinkGenerator()
 	handler := NewGetShortLinkHandler(service.NewShortLinkService(shortLinkRepository, shortLinkGenerator))
 
@@ -36,7 +53,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 		want        want
 	}{
 		{
-			name:    "Success Getting ShortLink",
+			name:    "SuccessGettingShortLink_1",
 			method:  http.MethodGet,
 			request: "/sa42d45ds2",
 			want: want{
@@ -46,7 +63,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name:    "Success Getting ShortLink",
+			name:    "SuccessGettingShortLink_2",
 			method:  http.MethodGet,
 			request: "/qwetyr123iu",
 			want: want{
@@ -56,24 +73,35 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name:    "Method invalid",
+			name:    "UsageMethodNotAllowed",
 			method:  http.MethodPost,
-			request: "/",
+			request: "/asd",
 			body:    "",
 			want: want{
 				statusCode: http.StatusMethodNotAllowed,
-				body:       "Method not allowed!",
+				body:       "405 method not allowed",
 				location:   "",
 			},
 		},
 		{
-			name:    "Undefined URL",
+			name:    "UndefinedURL",
 			method:  http.MethodGet,
 			request: "/testesttest",
 			body:    "",
 			want: want{
 				statusCode: http.StatusBadRequest,
 				body:       "not found by short link: testesttest",
+				location:   "",
+			},
+		},
+		{
+			name:    "UncorrectURL",
+			method:  http.MethodGet,
+			request: "/",
+			body:    "",
+			want: want{
+				statusCode: http.StatusNotFound,
+				body:       "404 page not found",
 				location:   "",
 			},
 		},
@@ -88,15 +116,27 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			context.AddParam("id", strings.TrimLeft(tt.request, "/"))
 			context.Request = request
 
-			handler.Handle(context)
+			r := setupRouter()
+			r.GET(`/:id`, handler.Handle)
+			r.ServeHTTP(response, request)
 
-			assert.Equal(t, tt.want.statusCode, response.Code)
+			if code := tt.want.statusCode; code != response.Code {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, response.Code, code)
+			}
 
 			body, err := io.ReadAll(response.Body)
 
-			assert.NoError(t, err)
-			assert.Equal(t, tt.want.body, string(body))
-			assert.Equal(t, response.Header().Get("Location"), tt.want.location)
+			if err != nil {
+				t.Errorf("%v: Error = '%v'", tt.name, err.Error())
+			}
+
+			if tbody := tt.want.body; tbody != string(body) {
+				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tbody, string(body))
+			}
+
+			if location := tt.want.location; location != response.Header().Get("Location") {
+				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, location, response.Header().Get("Location"))
+			}
 		})
 	}
 }
