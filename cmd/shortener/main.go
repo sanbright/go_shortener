@@ -17,10 +17,9 @@ import (
 const ShortLinkLen int = 10
 
 func setupRouter() *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
 	r.HandleMethodNotAllowed = true
-
-	r.Use(middleware.Logger(setupLogger()))
+	r.Use(middleware.Logger(setupLogger()), gin.Recovery())
 
 	return r
 }
@@ -45,10 +44,12 @@ func main() {
 	shortLinkService := service.NewShortLinkService(shortLinkRepository, shortLinkGenerator)
 	getHandler := handler.NewGetShortLinkHandler(shortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(shortLinkService, configuration.BaseURL.URL)
+	postApiHandler := handler.NewPostApiShortLinkHandler(shortLinkService, configuration.BaseURL.URL)
 
 	r := setupRouter()
 	r.GET(`/:id`, getHandler.Handle)
 	r.POST(`/`, postHandler.Handle)
+	r.POST(`/api/shorten`, postApiHandler.Handle)
 	err = r.Run(configuration.DomainAndPort.String())
 
 	if err != nil {
