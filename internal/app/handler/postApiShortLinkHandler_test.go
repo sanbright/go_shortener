@@ -87,6 +87,10 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 			context.AddParam("short", strings.TrimLeft(tt.request, "/"))
 			context.Request = request
 
+			context.Writer.Header().Set("Accept-Encoding", "gzip")
+			context.Writer.Header().Set("Content-Encoding", "gzip")
+			context.Writer.Header().Set("Content-Type", "application/json")
+
 			r := setupRouter()
 			r.POST(`/api/shorten`, handler.Handle)
 			r.ServeHTTP(response, request)

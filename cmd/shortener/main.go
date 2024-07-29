@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/gzip"
 	"log"
 	"os"
 	"sanbright/go_shortener/internal/app/generator"
@@ -19,7 +20,11 @@ const ShortLinkLen int = 10
 func setupRouter() *gin.Engine {
 	r := gin.New()
 	r.HandleMethodNotAllowed = true
-	r.Use(middleware.Logger(setupLogger()), gin.Recovery())
+	r.Use(
+		gzip.Gzip(gzip.DefaultCompression, gzip.WithDecompressFn(gzip.DefaultDecompressHandle)),
+		middleware.Logger(setupLogger()),
+		gin.Recovery(),
+	)
 
 	return r
 }
