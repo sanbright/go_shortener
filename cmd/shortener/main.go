@@ -39,22 +39,32 @@ func setupLogger() *zap.Logger {
 }
 
 func main() {
-	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"))
+	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"))
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}
 
-	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := generator.NewShortLinkGenerator(ShortLinkLen)
-	shortLinkService := service.NewShortLinkService(shortLinkRepository, shortLinkGenerator)
-	getHandler := handler.NewGetShortLinkHandler(shortLinkService)
-	postHandler := handler.NewPostShortLinkHandler(shortLinkService, configuration.BaseURL.URL)
-	postApiHandler := handler.NewPostApiShortLinkHandler(shortLinkService, configuration.BaseURL.URL)
+	writeShortLinkRepository, err := repository.NewWriteShortLinkRepository(configuration.StoragePath)
+	if err != nil {
+		log.Fatalf("Fatal init write repository: %s", err.Error())
+	}
+
+	readShortLinkRepository, _ := repository.NewReadShortLinkRepository(configuration.StoragePath)
+	if err != nil {
+		log.Fatalf("Fatal init read repository: %s", err.Error())
+	}
+
+	readShortLinkService := service.NewReadShortLinkService(readShortLinkRepository)
+	writeShortLinkService := service.NewWriteShortLinkService(writeShortLinkRepository, shortLinkGenerator)
+	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
+	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
+	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 
 	r := setupRouter()
 	r.GET(`/:id`, getHandler.Handle)
 	r.POST(`/`, postHandler.Handle)
-	r.POST(`/api/shorten`, postApiHandler.Handle)
+	r.POST(`/api/shorten`, postAPIHandler.Handle)
 	err = r.Run(configuration.DomainAndPort.String())
 
 	if err != nil {

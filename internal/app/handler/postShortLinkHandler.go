@@ -12,11 +12,11 @@ import (
 )
 
 type PostShortLinkHandler struct {
-	service *service.ShortLinkService
+	service *service.WriteShortLinkService
 	baseURL string
 }
 
-func NewPostShortLinkHandler(service *service.ShortLinkService, baseURL string) *PostShortLinkHandler {
+func NewPostShortLinkHandler(service *service.WriteShortLinkService, baseURL string) *PostShortLinkHandler {
 	return &PostShortLinkHandler{service: service, baseURL: baseURL}
 }
 

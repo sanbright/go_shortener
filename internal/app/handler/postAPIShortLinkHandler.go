@@ -10,16 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type PostApiShortLinkHandler struct {
-	service *service.ShortLinkService
+type PostAPIShortLinkHandler struct {
+	service *service.WriteShortLinkService
 	baseURL string
 }
 
-func NewPostApiShortLinkHandler(service *service.ShortLinkService, baseURL string) *PostApiShortLinkHandler {
-	return &PostApiShortLinkHandler{service: service, baseURL: baseURL}
+func NewPostAPIShortLinkHandler(service *service.WriteShortLinkService, baseURL string) *PostAPIShortLinkHandler {
+	return &PostAPIShortLinkHandler{service: service, baseURL: baseURL}
 }
 
-func (handler *PostApiShortLinkHandler) Handle(ctx *gin.Context) {
+func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 
 	var req *dto.Request
 	var buf bytes.Buffer
@@ -38,7 +38,7 @@ func (handler *PostApiShortLinkHandler) Handle(ctx *gin.Context) {
 		return
 	}
 
-	if len(req.Url) == 0 {
+	if len(req.URL) == 0 {
 		var out []*dto.CurrentError
 		out = append(out, &dto.CurrentError{
 			Path:    "url",
@@ -48,7 +48,7 @@ func (handler *PostApiShortLinkHandler) Handle(ctx *gin.Context) {
 		return
 	}
 
-	shortLinkEntity, err := handler.service.Add(req.Url)
+	shortLinkEntity, err := handler.service.Add(req.URL)
 
 	if err != nil {
 		ctx.String(http.StatusBadRequest, "%s", err.Error())

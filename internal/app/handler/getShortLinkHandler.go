@@ -7,10 +7,10 @@ import (
 )
 
 type GetShortLinkHandler struct {
-	service *service.ShortLinkService
+	service *service.ReadShortLinkService
 }
 
-func NewGetShortLinkHandler(service *service.ShortLinkService) *GetShortLinkHandler {
+func NewGetShortLinkHandler(service *service.ReadShortLinkService) *GetShortLinkHandler {
 	return &GetShortLinkHandler{service: service}
 }
 
