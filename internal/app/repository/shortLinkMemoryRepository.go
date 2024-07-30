@@ -5,9 +5,12 @@ import (
 	"sanbright/go_shortener/internal/app/entity"
 )
 
-type ShortLinkRepositoryInterface interface {
-	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
+type WriteShortLinkRepositoryInterface interface {
 	Add(shortLink string, url string) (*entity.ShortLinkEntity, error)
+}
+
+type ReadShortLinkRepositoryInterface interface {
+	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
 }
 
 type ShortLinkRepository struct {
