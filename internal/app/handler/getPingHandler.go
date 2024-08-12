@@ -39,5 +39,4 @@ func (handler *GetPingHandler) Handle(ctx *gin.Context) {
 	}
 
 	ctx.Writer.WriteHeader(http.StatusOK)
-	return
 }

@@ -17,12 +17,12 @@ import (
 
 const ShortLinkLen int = 10
 
-func setupRouter() *gin.Engine {
+func setupRouter(log *zap.Logger) *gin.Engine {
 	r := gin.New()
 	r.HandleMethodNotAllowed = true
 	r.Use(
 		gzip.Gzip(gzip.DefaultCompression, gzip.WithDecompressFn(gzip.DefaultDecompressHandle)),
-		middleware.Logger(setupLogger()),
+		middleware.Logger(log),
 		gin.Recovery(),
 	)
 
@@ -39,30 +39,24 @@ func setupLogger() *zap.Logger {
 }
 
 func main() {
+	logger := setupLogger()
+
 	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"), os.Getenv("DATABASE_DSN"))
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}
 
 	shortLinkGenerator := generator.NewShortLinkGenerator(ShortLinkLen)
-	writeShortLinkRepository, err := repository.NewWriteShortLinkRepository(configuration.StoragePath)
-	if err != nil {
-		log.Fatalf("Fatal init write repository: %s", err.Error())
-	}
+	shortLinkRepository, _ := repository.NewRepositoryResolver(configuration, logger).Execute()
 
-	readShortLinkRepository, _ := repository.NewReadShortLinkRepository(configuration.StoragePath)
-	if err != nil {
-		log.Fatalf("Fatal init read repository: %s", err.Error())
-	}
-
-	readShortLinkService := service.NewReadShortLinkService(readShortLinkRepository)
-	writeShortLinkService := service.NewWriteShortLinkService(writeShortLinkRepository, shortLinkGenerator)
+	readShortLinkService := service.NewReadShortLinkService(shortLinkRepository)
+	writeShortLinkService := service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator)
 	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	getPing := handler.NewGetPingHandler(configuration)
 
-	r := setupRouter()
+	r := setupRouter(logger)
 	r.GET(`/:id`, getHandler.Handle)
 	r.POST(`/`, postHandler.Handle)
 	r.POST(`/api/shorten`, postAPIHandler.Handle)

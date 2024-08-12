@@ -7,11 +7,11 @@ import (
 )
 
 type WriteShortLinkService struct {
-	repository repository.WriteShortLinkRepositoryInterface
+	repository repository.ShortLinkRepositoryInterface
 	generator  generator.ShortLinkGeneratorInterface
 }
 
-func NewWriteShortLinkService(repository repository.WriteShortLinkRepositoryInterface, generator generator.ShortLinkGeneratorInterface) *WriteShortLinkService {
+func NewWriteShortLinkService(repository repository.ShortLinkRepositoryInterface, generator generator.ShortLinkGeneratorInterface) *WriteShortLinkService {
 	return &WriteShortLinkService{repository: repository, generator: generator}
 }
 

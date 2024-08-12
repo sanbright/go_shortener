@@ -12,33 +12,20 @@ import (
 	"encoding/json"
 )
 
-type ReadShortLinkRepository struct {
+type ShortLinkStorageRepository struct {
 	file *os.File
 }
 
-type WriteShortLinkRepository struct {
-	file *os.File
-}
-
-func NewWriteShortLinkRepository(path string) (*WriteShortLinkRepository, error) {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+func NewShortLinkStorageRepository(path string) (*ShortLinkStorageRepository, error) {
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
 	}
 
-	return &WriteShortLinkRepository{file: file}, nil
+	return &ShortLinkStorageRepository{file: file}, nil
 }
 
-func NewReadShortLinkRepository(path string) (*ReadShortLinkRepository, error) {
-	file, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ReadShortLinkRepository{file: file}, nil
-}
-
-func (repo *ReadShortLinkRepository) FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error) {
+func (repo *ShortLinkStorageRepository) FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error) {
 	var shortLinkEntity entity.ShortLinkEntity
 
 	_, err := repo.file.Seek(0, io.SeekStart)
@@ -65,7 +52,7 @@ func (repo *ReadShortLinkRepository) FindByShortLink(shortLink string) (*entity.
 	return nil, nil
 }
 
-func (repo *WriteShortLinkRepository) Add(shortLink string, url string) (*entity.ShortLinkEntity, error) {
+func (repo *ShortLinkStorageRepository) Add(shortLink string, url string) (*entity.ShortLinkEntity, error) {
 	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url)
 
 	s, err := json.Marshal(newShortLinkEntity)

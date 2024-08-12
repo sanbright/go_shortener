@@ -13,7 +13,7 @@ const (
 	DefaultServerAddress string = "localhost:8080"
 	DefaultBaseURL       string = "http://localhost:8080"
 	DefaultStoragePath   string = "/base.bd"
-	DefaultDatabaseDSN   string = "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_sh sslmode=disable"
+	DefaultDatabaseDSN   string = ""
 )
 
 type Config struct {
