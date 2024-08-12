@@ -13,12 +13,14 @@ const (
 	DefaultServerAddress string = "localhost:8080"
 	DefaultBaseURL       string = "http://localhost:8080"
 	DefaultStoragePath   string = "/base.bd"
+	DefaultDatabaseDSN   string = "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_sh sslmode=disable"
 )
 
 type Config struct {
 	DomainAndPort DomainAndPort
 	BaseURL       ExternalURL
 	StoragePath   string
+	DatabaseDSN   string
 }
 
 type DomainAndPort struct {
@@ -30,7 +32,7 @@ type ExternalURL struct {
 	URL string
 }
 
-func NewConfig(serverAddress string, baseURL string, storagePath string) (*Config, error) {
+func NewConfig(serverAddress string, baseURL string, storagePath string, databaseDSN string) (*Config, error) {
 
 	if len(serverAddress) == 0 {
 		serverAddress = DefaultServerAddress
@@ -38,6 +40,10 @@ func NewConfig(serverAddress string, baseURL string, storagePath string) (*Confi
 
 	if len(baseURL) == 0 {
 		baseURL = DefaultBaseURL
+	}
+
+	if len(databaseDSN) == 0 {
+		databaseDSN = DefaultDatabaseDSN
 	}
 
 	if len(storagePath) == 0 {
@@ -51,6 +57,7 @@ func NewConfig(serverAddress string, baseURL string, storagePath string) (*Confi
 	var domainAndPort DomainAndPort
 	var externalURL ExternalURL
 	var storagePathConf string
+	var databaseDSNConf string
 
 	err := externalURL.Set(baseURL)
 	if err != nil {
@@ -65,12 +72,14 @@ func NewConfig(serverAddress string, baseURL string, storagePath string) (*Confi
 	flag.Var(&domainAndPort, "a", "listen host and port")
 	flag.Var(&externalURL, "b", "domain in short link")
 	flag.StringVar(&storagePathConf, "f", storagePath, "file storage path")
+	flag.StringVar(&databaseDSNConf, "d", databaseDSN, "database storage")
 	flag.Parse()
 
 	return &Config{
 		DomainAndPort: domainAndPort,
 		BaseURL:       externalURL,
 		StoragePath:   storagePathConf,
+		DatabaseDSN:   databaseDSNConf,
 	}, nil
 }
 

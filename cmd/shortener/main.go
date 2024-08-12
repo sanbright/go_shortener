@@ -39,7 +39,7 @@ func setupLogger() *zap.Logger {
 }
 
 func main() {
-	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"))
+	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"), os.Getenv("DATABASE_DSN"))
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}
@@ -60,11 +60,13 @@ func main() {
 	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
+	getPing := handler.NewGetPingHandler(configuration)
 
 	r := setupRouter()
 	r.GET(`/:id`, getHandler.Handle)
 	r.POST(`/`, postHandler.Handle)
 	r.POST(`/api/shorten`, postAPIHandler.Handle)
+	r.GET(`/ping`, getPing.Handle)
 	err = r.Run(configuration.DomainAndPort.String())
 
 	if err != nil {
