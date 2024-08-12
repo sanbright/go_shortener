@@ -14,22 +14,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type MockShortLinkGenerator struct {
-}
-
-func NewMockShortLinkGenerator() *MockShortLinkGenerator {
-	return &MockShortLinkGenerator{}
-}
-
-func (generator *MockShortLinkGenerator) UniqGenerate() string {
-	return "QYsTVwgznh"
-}
-
-func TestPostShortLinkHandler_Handle(t *testing.T) {
+func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := NewMockShortLinkGenerator()
-	handler := NewPostShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com")
+	handler := NewPostAPIShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com")
 
 	type want struct {
 		statusCode int
@@ -48,7 +37,7 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 		{
 			name:    "UsageMethodNotAllowed",
 			method:  http.MethodGet,
-			request: "/",
+			request: "/api/shorten",
 			body:    "",
 			want: want{
 				statusCode: http.StatusMethodNotAllowed,
@@ -59,11 +48,21 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 		{
 			name:    "SuccessAppendShortLink",
 			method:  http.MethodPost,
-			request: "/",
-			body:    "https://google.com/test",
+			request: "/api/shorten",
+			body:    "{\"url\":\"https://google.com/test\"}",
 			want: want{
 				statusCode: http.StatusCreated,
-				body:       "http://example.com/QYsTVwgznh",
+				body:       "{\"result\":\"http://example.com/QYsTVwgznh\"}",
+			},
+		},
+		{
+			name:    "InvalidUrl",
+			method:  http.MethodPost,
+			request: "/api/shorten",
+			body:    "{\"urasdl\":\"https://google.com/test\"}",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "{\"success\":false,\"errors\":[{\"path\":\"url\",\"message\":\"Значение не может быть пустым\"}]}",
 			},
 		},
 		{
@@ -88,8 +87,12 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			context.AddParam("short", strings.TrimLeft(tt.request, "/"))
 			context.Request = request
 
+			context.Writer.Header().Set("Accept-Encoding", "gzip")
+			context.Writer.Header().Set("Content-Encoding", "gzip")
+			context.Writer.Header().Set("Content-Type", "application/json")
+
 			r := setupRouter()
-			r.POST(`/`, handler.Handle)
+			r.POST(`/api/shorten`, handler.Handle)
 			r.ServeHTTP(response, request)
 			result := response.Result()
 

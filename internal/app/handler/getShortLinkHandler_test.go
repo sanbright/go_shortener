@@ -35,8 +35,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
 	}
 
-	shortLinkGenerator := NewMockShortLinkGenerator()
-	handler := NewGetShortLinkHandler(service.NewShortLinkService(shortLinkRepository, shortLinkGenerator))
+	handler := NewGetShortLinkHandler(service.NewReadShortLinkService(shortLinkRepository))
 
 	type want struct {
 		statusCode int
