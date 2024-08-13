@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"sanbright/go_shortener/internal/app/dto"
+	"sanbright/go_shortener/internal/app/dto/api"
 	"sanbright/go_shortener/internal/app/service"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +21,7 @@ func NewPostAPIShortLinkHandler(service *service.WriteShortLinkService, baseURL 
 
 func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 
-	var req *dto.Request
+	var req *api.Request
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(ctx.Request.Body)
@@ -39,12 +39,12 @@ func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 	}
 
 	if len(req.URL) == 0 {
-		var out []*dto.CurrentError
-		out = append(out, &dto.CurrentError{
+		var out []*api.CurrentError
+		out = append(out, &api.CurrentError{
 			Path:    "url",
 			Message: "Значение не может быть пустым",
 		})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{Success: false, Errors: out})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, api.ErrorResponse{Success: false, Errors: out})
 		return
 	}
 
@@ -58,7 +58,7 @@ func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 
 	ctx.Header("Content-type", "application/json")
 
-	res := dto.Response{Result: handler.baseURL + "/" + shortLinkEntity.ShortLink}
+	res := api.Response{Result: handler.baseURL + "/" + shortLinkEntity.ShortLink}
 
 	resp, _ := json.Marshal(res)
 

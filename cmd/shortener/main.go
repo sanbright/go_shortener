@@ -54,12 +54,14 @@ func main() {
 	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
+	batchAPIHandler := handler.NewPostBathShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	getPing := handler.NewGetPingHandler(configuration)
 
 	r := setupRouter(logger)
 	r.GET(`/:id`, getHandler.Handle)
 	r.POST(`/`, postHandler.Handle)
 	r.POST(`/api/shorten`, postAPIHandler.Handle)
+	r.POST(`/api/shorten/batch`, batchAPIHandler.Handle)
 	r.GET(`/ping`, getPing.Handle)
 	err = r.Run(configuration.DomainAndPort.String())
 
