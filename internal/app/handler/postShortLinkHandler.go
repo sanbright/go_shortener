@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"errors"
 	"io"
+	repErr "sanbright/go_shortener/internal/app/repository/error"
 	"strings"
 
 	"net/http"
@@ -37,13 +39,20 @@ func (handler *PostShortLinkHandler) Handle(ctx *gin.Context) {
 	defer ctx.Request.Body.Close()
 
 	shortLinkEntity, err := handler.service.Add(string(url))
+	statusCode := http.StatusCreated
 
 	if err != nil {
-		ctx.String(http.StatusBadRequest, "%s", err.Error())
-		ctx.Abort()
-		return
+		var notUniq *repErr.NotUniqShortLinkError
+
+		if errors.As(err, &notUniq) {
+			statusCode = http.StatusConflict
+		} else {
+			ctx.String(http.StatusBadRequest, "%s", err.Error())
+			ctx.Abort()
+			return
+		}
 	}
 
 	ctx.Header("Content-type", "text/plain")
-	ctx.String(http.StatusCreated, "%s/%s", handler.baseURL, shortLinkEntity.ShortLink)
+	ctx.String(statusCode, "%s/%s", handler.baseURL, shortLinkEntity.ShortLink)
 }

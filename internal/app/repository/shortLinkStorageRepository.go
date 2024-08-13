@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
+	repErr "sanbright/go_shortener/internal/app/repository/error"
 	"strings"
 )
 
@@ -52,7 +54,40 @@ func (repo *ShortLinkStorageRepository) FindByShortLink(shortLink string) (*enti
 	return nil, nil
 }
 
+func (repo *ShortLinkStorageRepository) FindByURL(URL string) (*entity.ShortLinkEntity, error) {
+	var shortLinkEntity entity.ShortLinkEntity
+
+	_, err := repo.file.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(repo.file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), URL) {
+			err := json.Unmarshal(scanner.Bytes(), &shortLinkEntity)
+			if err != nil {
+				return nil, err
+			}
+
+			return &shortLinkEntity, nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func (repo *ShortLinkStorageRepository) Add(shortLink string, url string) (*entity.ShortLinkEntity, error) {
+	found, _ := repo.FindByURL(url)
+
+	if found != nil {
+		return nil, repErr.NewNotUniqShortLinkError(found.URL, nil)
+	}
+
 	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url)
 
 	s, err := json.Marshal(newShortLinkEntity)
@@ -68,4 +103,16 @@ func (repo *ShortLinkStorageRepository) Add(shortLink string, url string) (*enti
 	}
 
 	return newShortLinkEntity, nil
+}
+
+func (repo *ShortLinkStorageRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
+	for _, v := range shortLinks {
+		_, err := repo.Add(v.ShortURL, v.OriginalURL)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &shortLinks, nil
 }

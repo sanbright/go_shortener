@@ -1,9 +1,12 @@
 package service
 
 import (
+	"errors"
+	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/repository"
+	repErr "sanbright/go_shortener/internal/app/repository/error"
 )
 
 type WriteShortLinkService struct {
@@ -21,8 +24,36 @@ func (service *WriteShortLinkService) Add(url string) (*entity.ShortLinkEntity, 
 	shortLinkEntity, err := service.repository.Add(shortLink, url)
 
 	if err != nil {
+		var notUniq *repErr.NotUniqShortLinkError
+
+		if errors.As(err, &notUniq) {
+			shortLinkEntity, _ = service.repository.FindByURL(url)
+
+			return shortLinkEntity, err
+		}
+
 		return nil, err
 	}
 
 	return shortLinkEntity, nil
+}
+
+func (service *WriteShortLinkService) AddBatch(links *batch.Request, baseURL string) (*batch.AddBatchDtoList, error) {
+	var batchList batch.AddBatchDtoList
+
+	for _, element := range *links {
+		batchList = append(batchList, &batch.AddBatchDto{
+			CorrelationID: element.CorrelationID,
+			OriginalURL:   element.OriginalURL,
+			ShortURL:      service.generator.UniqGenerate(),
+		})
+	}
+
+	result, err := service.repository.AddBatch(batchList)
+
+	if err != nil {
+		return &batchList, err
+	}
+
+	return result, nil
 }

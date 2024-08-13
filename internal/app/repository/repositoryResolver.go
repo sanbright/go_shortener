@@ -3,11 +3,12 @@ package repository
 import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
+	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/config"
 )
 
-var schema = `
+const schema = `
 CREATE TABLE IF NOT EXISTS short_link (
 	"uuid" UUID NOT NULL,
 	"short_link" VARCHAR(10) NOT NULL,
@@ -16,11 +17,14 @@ CREATE TABLE IF NOT EXISTS short_link (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS short_link__uniq ON short_link (short_link);
+CREATE UNIQUE INDEX IF NOT EXISTS url__uniq ON short_link (url);
 `
 
 type ShortLinkRepositoryInterface interface {
 	Add(shortLink string, url string) (*entity.ShortLinkEntity, error)
+	AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error)
 	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
+	FindByURL(URL string) (*entity.ShortLinkEntity, error)
 }
 
 type Resolver struct {
@@ -65,4 +69,14 @@ func (r *Resolver) Execute() (ShortLinkRepositoryInterface, error) {
 
 	r.Log.Debug("Used Memory repository")
 	return NewShortLinkRepository(), nil
+}
+
+func (r *Resolver) InitDB() (*sqlx.DB, error) {
+	db, err := sqlx.Connect("postgres", r.Config.DatabaseDSN)
+	if err != nil {
+		r.Log.Error("Fatal init DB repository:", zap.String("ERROR", err.Error()))
+		return nil, err
+	}
+
+	return db, nil
 }

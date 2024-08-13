@@ -54,7 +54,7 @@ func main() {
 	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
-	batchAPIHandler := handler.NewPostBathShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
+	batchAPIHandler := handler.NewPostBatchShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
 	getPing := handler.NewGetPingHandler(configuration)
 
 	r := setupRouter(logger)

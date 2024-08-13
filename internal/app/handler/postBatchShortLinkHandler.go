@@ -4,30 +4,32 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
-	"sanbright/go_shortener/internal/app/dto/api"
+	"sanbright/go_shortener/internal/app/dto/batch"
 	repErr "sanbright/go_shortener/internal/app/repository/error"
 	"sanbright/go_shortener/internal/app/service"
-
-	"github.com/gin-gonic/gin"
 )
 
-type PostAPIShortLinkHandler struct {
+type PostBatchShortLinkHandler struct {
 	service *service.WriteShortLinkService
+	logger  *zap.Logger
 	baseURL string
 }
 
-func NewPostAPIShortLinkHandler(service *service.WriteShortLinkService, baseURL string) *PostAPIShortLinkHandler {
-	return &PostAPIShortLinkHandler{service: service, baseURL: baseURL}
+func NewPostBatchShortLinkHandler(service *service.WriteShortLinkService, baseURL string, logger *zap.Logger) *PostBatchShortLinkHandler {
+	return &PostBatchShortLinkHandler{service: service, baseURL: baseURL, logger: logger}
 }
 
-func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
-
-	var req *api.Request
+func (handler *PostBatchShortLinkHandler) Handle(ctx *gin.Context) {
+	var req *batch.Request
 	var buf bytes.Buffer
+	var out batch.Response
 
 	_, err := buf.ReadFrom(ctx.Request.Body)
 	defer ctx.Request.Body.Close()
+
 	if err != nil {
 		ctx.String(http.StatusBadRequest, "%s", err.Error())
 		ctx.Abort()
@@ -39,25 +41,19 @@ func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+	ctx.Header("Content-type", "application/json")
 
-	if len(req.URL) == 0 {
-		var out []*api.CurrentError
-		out = append(out, &api.CurrentError{
-			Path:    "url",
-			Message: "Значение не может быть пустым",
-		})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, api.ErrorResponse{Success: false, Errors: out})
-		return
-	}
-
-	shortLinkEntity, err := handler.service.Add(req.URL)
+	list, err := handler.service.AddBatch(req, handler.baseURL)
 
 	statusCode := http.StatusCreated
+
 	if err != nil {
+		handler.logger.Error("Add Batch Error")
 		var notUniq *repErr.NotUniqShortLinkError
 
 		if errors.As(err, &notUniq) {
 			statusCode = http.StatusConflict
+			handler.logger.Error("Add Batch Conflict")
 		} else {
 			ctx.String(http.StatusBadRequest, "%s", err.Error())
 			ctx.Abort()
@@ -65,11 +61,14 @@ func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 		}
 	}
 
-	ctx.Header("Content-type", "application/json")
+	for _, element := range *list {
+		out = append(out, &batch.ItemResponse{
+			CorrelationID: element.CorrelationID,
+			ShortURL:      handler.baseURL + "/" + element.ShortURL,
+		})
+	}
 
-	res := api.Response{Result: handler.baseURL + "/" + shortLinkEntity.ShortLink}
-
-	resp, _ := json.Marshal(res)
+	resp, _ := json.Marshal(out)
 
 	ctx.Writer.WriteHeader(statusCode)
 	ctx.Writer.Write(resp)

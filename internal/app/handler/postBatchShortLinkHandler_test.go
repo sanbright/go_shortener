@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +15,13 @@ import (
 func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := NewMockShortLinkGenerator()
-	handler := NewPostBathShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com")
+
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+
+	handler := NewPostBatchShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com", logger)
 
 	type want struct {
 		statusCode int
@@ -58,6 +65,16 @@ func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 			body:    "[{\"correlation_id\":\"dd112935-bb0f-4645-bb19-49a1418ba692\",\"original_url\":\"http://tdbju0uipsn1ng.com/xirnkpgj9cvjyn/x2jdb5h9ltw\"},{\"correlation_id\":\"2cfbbb87-643c-4dfa-a4c4-a40b9213188f\",\"original_url\":\"http://mpxjbc26zly.biz/vdhyungaq6m\"}]",
 			want: want{
 				statusCode: http.StatusCreated,
+				body:       "[{\"correlation_id\":\"dd112935-bb0f-4645-bb19-49a1418ba692\",\"short_url\":\"http://example.com/QYsTVwgznh\"},{\"correlation_id\":\"2cfbbb87-643c-4dfa-a4c4-a40b9213188f\",\"short_url\":\"http://example.com/QYsTVwgznh\"}]",
+			},
+		},
+		{
+			name:    "ConflictAppendTwoBatchShortLink",
+			method:  http.MethodPost,
+			request: "/api/shorten/batch",
+			body:    "[{\"correlation_id\":\"dd112935-bb0f-4645-bb19-49a1418ba692\",\"original_url\":\"http://tdbju0uipsn1ng.com/xirnkpgj9cvjyn/x2jdb5h9ltw\"},{\"correlation_id\":\"2cfbbb87-643c-4dfa-a4c4-a40b9213188f\",\"original_url\":\"http://tdbju0uipsn1ng.com/xirnkpgj9cvjyn/x2jdb5h9ltw\"}]",
+			want: want{
+				statusCode: http.StatusConflict,
 				body:       "[{\"correlation_id\":\"dd112935-bb0f-4645-bb19-49a1418ba692\",\"short_url\":\"http://example.com/QYsTVwgznh\"},{\"correlation_id\":\"2cfbbb87-643c-4dfa-a4c4-a40b9213188f\",\"short_url\":\"http://example.com/QYsTVwgznh\"}]",
 			},
 		},

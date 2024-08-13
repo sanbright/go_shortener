@@ -13,3 +13,11 @@ type ItemResponse struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
+
+type AddBatchDtoList []*AddBatchDto
+
+type AddBatchDto struct {
+	CorrelationID string
+	OriginalURL   string
+	ShortURL      string
+}
