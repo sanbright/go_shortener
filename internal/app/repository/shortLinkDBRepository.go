@@ -93,7 +93,7 @@ func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*
 
 	for _, v := range shortLinks {
 
-		im := entity.NewShortLinkEntity(v.ShortURL, v.ShortURL)
+		im := entity.NewShortLinkEntity(v.ShortURL, v.OriginalURL)
 
 		_, err := tx.Exec(
 			"INSERT INTO short_link (uuid, short_link, url) VALUES ($1, $2, $3)",
@@ -102,6 +102,10 @@ func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*
 			im.URL)
 
 		if err != nil {
+			if pgerrcode.IsIntegrityConstraintViolation(pgerrcode.UniqueViolation) {
+				return nil, repErr.NewNotUniqShortLinkError(v.OriginalURL, err)
+			}
+
 			return nil, err
 		}
 	}

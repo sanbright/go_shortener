@@ -43,7 +43,7 @@ func (handler *PostBatchShortLinkHandler) Handle(ctx *gin.Context) {
 	}
 	ctx.Header("Content-type", "application/json")
 
-	list, err := handler.service.AddBatch(req, handler.baseURL)
+	list, err := handler.service.AddBatch(req)
 
 	statusCode := http.StatusCreated
 

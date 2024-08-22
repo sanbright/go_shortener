@@ -30,6 +30,7 @@ type ShortLinkRepositoryInterface interface {
 type Resolver struct {
 	Config *config.Config
 	Log    *zap.Logger
+	DB     *sqlx.DB
 }
 
 func NewRepositoryResolver(config *config.Config, log *zap.Logger) *Resolver {
@@ -38,12 +39,10 @@ func NewRepositoryResolver(config *config.Config, log *zap.Logger) *Resolver {
 
 func (r *Resolver) Execute() (ShortLinkRepositoryInterface, error) {
 	if len(r.Config.DatabaseDSN) > 0 {
-		db, err := sqlx.Connect("postgres", r.Config.DatabaseDSN)
-		if err != nil {
-			r.Log.Error("Fatal init DB repository:", zap.String("ERROR", err.Error()))
-		}
+		db, _ := r.InitDB()
+
 		if db != nil {
-			err = db.Ping()
+			err := db.Ping()
 
 			if err != nil {
 				r.Log.Error("Error ping DB repository:", zap.String("ERROR", err.Error()))
@@ -72,6 +71,10 @@ func (r *Resolver) Execute() (ShortLinkRepositoryInterface, error) {
 }
 
 func (r *Resolver) InitDB() (*sqlx.DB, error) {
+	if r.DB != nil {
+		return r.DB, nil
+	}
+
 	db, err := sqlx.Connect("postgres", r.Config.DatabaseDSN)
 	if err != nil {
 		r.Log.Error("Fatal init DB repository:", zap.String("ERROR", err.Error()))

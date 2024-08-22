@@ -38,7 +38,7 @@ func (service *WriteShortLinkService) Add(url string) (*entity.ShortLinkEntity, 
 	return shortLinkEntity, nil
 }
 
-func (service *WriteShortLinkService) AddBatch(links *batch.Request, baseURL string) (*batch.AddBatchDtoList, error) {
+func (service *WriteShortLinkService) AddBatch(links *batch.Request) (*batch.AddBatchDtoList, error) {
 	var batchList batch.AddBatchDtoList
 
 	for _, element := range *links {
