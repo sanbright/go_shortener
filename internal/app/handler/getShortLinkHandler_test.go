@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"go.uber.org/zap"
 	"io"
 	"strings"
 	"testing"
@@ -21,16 +22,25 @@ func setupRouter() *gin.Engine {
 	return r
 }
 
+func setupLogger() *zap.Logger {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+
+	return logger
+}
+
 func TestGetShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 
-	_, err := shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas")
+	_, err := shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas", "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
 	if err != nil {
 		t.Errorf("ShortLinkFixture: Error = '%v'", err.Error())
 	}
 
-	_, err = shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com")
+	_, err = shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com", "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
 	if err != nil {
 		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
 	}
@@ -113,6 +123,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			response := httptest.NewRecorder()
 			context, _ := gin.CreateTestContext(response)
 			context.AddParam("id", strings.TrimLeft(tt.request, "/"))
+			context.AddParam("userId", "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
 			context.Request = request
 
 			r := setupRouter()

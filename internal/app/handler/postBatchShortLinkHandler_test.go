@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"sanbright/go_shortener/internal/app/generator"
+	"sanbright/go_shortener/internal/app/middleware"
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 	"strings"
@@ -15,6 +17,7 @@ import (
 func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := NewMockShortLinkGenerator()
+	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
@@ -22,6 +25,7 @@ func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 	}
 
 	handler := NewPostBatchShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com", logger)
+	authMiddleware := middleware.AuthGen(cry, logger)
 
 	type want struct {
 		statusCode int
@@ -93,6 +97,7 @@ func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
 			response := httptest.NewRecorder()
 
@@ -105,7 +110,7 @@ func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 			context.Writer.Header().Set("Content-Type", "application/json")
 
 			r := setupRouter()
-			r.POST(`/api/shorten/batch`, handler.Handle)
+			r.POST(`/api/shorten/batch`, authMiddleware, handler.Handle)
 			r.ServeHTTP(response, request)
 			result := response.Result()
 

@@ -15,7 +15,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const ShortLinkLen int = 10
+const (
+	ShortLinkLen int    = 10
+	CryptoKey    string = "$$ecuRityKe453H@"
+)
 
 func setupRouter(log *zap.Logger) *gin.Engine {
 	r := gin.New()
@@ -56,12 +59,18 @@ func main() {
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	batchAPIHandler := handler.NewPostBatchShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
 	getPing := handler.NewGetPingHandler(configuration)
+	getUserShortLinkHandler := handler.NewGetUserShortLinkHandler(readShortLinkService, logger)
+
+	cry := generator.NewCryptGenerator(CryptoKey)
+	authMiddleware := middleware.Auth(cry, logger)
+	authGenMiddleware := middleware.AuthGen(cry, logger)
 
 	r := setupRouter(logger)
 	r.GET(`/:id`, getHandler.Handle)
-	r.POST(`/`, postHandler.Handle)
-	r.POST(`/api/shorten`, postAPIHandler.Handle)
-	r.POST(`/api/shorten/batch`, batchAPIHandler.Handle)
+	r.POST(`/`, authGenMiddleware, postHandler.Handle)
+	r.POST(`/api/shorten`, authGenMiddleware, postAPIHandler.Handle)
+	r.POST(`/api/shorten/batch`, authGenMiddleware, batchAPIHandler.Handle)
+	r.GET(`/api/user/urls`, authMiddleware, getUserShortLinkHandler.Handle)
 	r.GET(`/ping`, getPing.Handle)
 	err = r.Run(configuration.DomainAndPort.String())
 

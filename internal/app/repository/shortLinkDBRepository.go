@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
 	"sanbright/go_shortener/internal/app/dto/batch"
@@ -18,14 +19,16 @@ func NewShortLinkDBRepository(db *sqlx.DB) *ShortLinkDBRepository {
 	return &ShortLinkDBRepository{db: db}
 }
 
-func (repo *ShortLinkDBRepository) Add(shortLink string, url string) (*entity.ShortLinkEntity, error) {
-	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url)
+func (repo *ShortLinkDBRepository) Add(shortLink string, url string, userId string) (*entity.ShortLinkEntity, error) {
+	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url, userId)
 
 	_, err := repo.db.Exec(
-		"INSERT INTO short_link (uuid, short_link, url) VALUES ($1, $2, $3)",
+		"INSERT INTO short_link (uuid, short_link, url, user_id) VALUES ($1, $2, $3, $4)",
 		newShortLinkEntity.UUID,
 		newShortLinkEntity.ShortLink,
-		newShortLinkEntity.URL)
+		newShortLinkEntity.URL,
+		newShortLinkEntity.UserId,
+	)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, err
@@ -49,7 +52,8 @@ func (repo *ShortLinkDBRepository) FindByShortLink(shortLink string) (*entity.Sh
 		`SELECT 
  					uuid,
 					short_link,
-					url
+					url,
+					user_id
 				FROM short_link sl
 					WHERE sl.short_link = $1
 				LIMIT 1`,
@@ -69,7 +73,8 @@ func (repo *ShortLinkDBRepository) FindByURL(URL string) (*entity.ShortLinkEntit
 		`SELECT 
  					uuid,
 					short_link,
-					url
+					url,
+					user_id
 				FROM short_link sl
 					WHERE sl.url = $1
 				LIMIT 1`,
@@ -80,6 +85,26 @@ func (repo *ShortLinkDBRepository) FindByURL(URL string) (*entity.ShortLinkEntit
 	}
 
 	return &shortLinkEntity, err
+}
+
+func (repo *ShortLinkDBRepository) FindByUserId(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
+	var shortLinkEntities *[]entity.ShortLinkEntity
+
+	err := repo.db.Get(&shortLinkEntities,
+		`SELECT 
+ 					uuid,
+					short_link,
+					url,
+					user_id
+				FROM short_link sl
+					WHERE sl.user_id = $1`,
+		uuid.String())
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+
+	return shortLinkEntities, nil
 }
 
 func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
@@ -93,13 +118,14 @@ func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*
 
 	for _, v := range shortLinks {
 
-		im := entity.NewShortLinkEntity(v.ShortURL, v.OriginalURL)
+		im := entity.NewShortLinkEntity(v.ShortURL, v.OriginalURL, v.UserId)
 
 		_, err := tx.Exec(
-			"INSERT INTO short_link (uuid, short_link, url) VALUES ($1, $2, $3)",
+			"INSERT INTO short_link (uuid, short_link, url, user_id) VALUES ($1, $2, $3, $4)",
 			im.UUID,
 			im.ShortLink,
-			im.URL)
+			im.URL,
+			im.UserId)
 
 		if err != nil {
 			if pgerrcode.IsIntegrityConstraintViolation(pgerrcode.UniqueViolation) {
