@@ -17,7 +17,7 @@ func AuthGen(crypt *generator.CryptGenerator, logger *zap.Logger) gin.HandlerFun
 
 			uuidString := uuid.New().String()
 			auth, _ = crypt.EncodeValue(uuidString)
-			c.SetCookie("Auth", auth, 3600, "/", "localhost", false, true)
+			c.SetCookie("Auth", auth, 3600, "", "localhost", false, true)
 
 			logger.Info("Set Cookie",
 				zap.String("uuidString", uuidString),

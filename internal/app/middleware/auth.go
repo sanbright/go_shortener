@@ -18,7 +18,7 @@ func Auth(crypt *generator.CryptGenerator, logger *zap.Logger) gin.HandlerFunc {
 			uuidString := uuid.New().String()
 			cookie, _ := crypt.EncodeValue(uuidString)
 
-			c.SetCookie("Auth", cookie, 3600, "/", "localhost", false, true)
+			c.SetCookie("Auth", cookie, 3600, "", "localhost", false, true)
 
 			c.String(http.StatusUnauthorized, "")
 			c.Abort()
