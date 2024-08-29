@@ -19,15 +19,15 @@ func NewShortLinkDBRepository(db *sqlx.DB) *ShortLinkDBRepository {
 	return &ShortLinkDBRepository{db: db}
 }
 
-func (repo *ShortLinkDBRepository) Add(shortLink string, url string, userId string) (*entity.ShortLinkEntity, error) {
-	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url, userId)
+func (repo *ShortLinkDBRepository) Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error) {
+	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url, userID)
 
 	_, err := repo.db.Exec(
 		"INSERT INTO short_link (uuid, short_link, url, user_id) VALUES ($1, $2, $3, $4)",
 		newShortLinkEntity.UUID,
 		newShortLinkEntity.ShortLink,
 		newShortLinkEntity.URL,
-		newShortLinkEntity.UserId,
+		newShortLinkEntity.UserID,
 	)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -87,24 +87,24 @@ func (repo *ShortLinkDBRepository) FindByURL(URL string) (*entity.ShortLinkEntit
 	return &shortLinkEntity, err
 }
 
-func (repo *ShortLinkDBRepository) FindByUserId(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
-	var shortLinkEntities *[]entity.ShortLinkEntity
+func (repo *ShortLinkDBRepository) FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
+	var shortLinkEntities []entity.ShortLinkEntity
 
-	err := repo.db.Get(&shortLinkEntities,
+	err := repo.db.Select(&shortLinkEntities,
 		`SELECT 
  					uuid,
 					short_link,
 					url,
 					user_id
 				FROM short_link sl
-					WHERE sl.user_id = $1`,
+				WHERE sl.user_id = $1`,
 		uuid.String())
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 
-	return shortLinkEntities, nil
+	return &shortLinkEntities, err
 }
 
 func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
@@ -118,14 +118,14 @@ func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*
 
 	for _, v := range shortLinks {
 
-		im := entity.NewShortLinkEntity(v.ShortURL, v.OriginalURL, v.UserId)
+		im := entity.NewShortLinkEntity(v.ShortURL, v.OriginalURL, v.UserID)
 
 		_, err := tx.Exec(
 			"INSERT INTO short_link (uuid, short_link, url, user_id) VALUES ($1, $2, $3, $4)",
 			im.UUID,
 			im.ShortLink,
 			im.URL,
-			im.UserId)
+			im.UserID)
 
 		if err != nil {
 			if pgerrcode.IsIntegrityConstraintViolation(pgerrcode.UniqueViolation) {

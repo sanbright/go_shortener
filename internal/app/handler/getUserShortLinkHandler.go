@@ -12,14 +12,15 @@ import (
 type GetUserShortLinkHandler struct {
 	service *service.ReadShortLinkService
 	logger  *zap.Logger
+	baseURL string
 }
 
-func NewGetUserShortLinkHandler(service *service.ReadShortLinkService, logger *zap.Logger) *GetUserShortLinkHandler {
-	return &GetUserShortLinkHandler{service: service, logger: logger}
+func NewGetUserShortLinkHandler(service *service.ReadShortLinkService, baseURL string, logger *zap.Logger) *GetUserShortLinkHandler {
+	return &GetUserShortLinkHandler{service: service, logger: logger, baseURL: baseURL}
 }
 
 func (handler *GetUserShortLinkHandler) Handle(ctx *gin.Context) {
-	userId, ok := ctx.Get("UserId")
+	userID, ok := ctx.Get("UserID")
 	if !ok {
 		ctx.String(http.StatusUnauthorized, "")
 		ctx.Abort()
@@ -30,23 +31,24 @@ func (handler *GetUserShortLinkHandler) Handle(ctx *gin.Context) {
 	defer ctx.Request.Body.Close()
 	var res user.Response
 
-	if str, ok := userId.(string); ok {
+	if str, ok := userID.(string); ok {
 
-		shortLinksEntity, err := handler.service.GetByUserId(str)
+		shortLinksEntity, err := handler.service.GetByUserID(str)
 
-		if err != nil || shortLinksEntity == nil {
+		if err != nil || shortLinksEntity == nil || len(*shortLinksEntity) == 0 {
 			handler.logger.Info("Error get user short link",
 				zap.Error(err),
 			)
-			ctx.String(http.StatusOK, "[]")
+
+			ctx.String(http.StatusNoContent, "[]")
 			ctx.Abort()
 			return
 		}
 
 		for _, v := range *shortLinksEntity {
 			res = append(res, &user.ItemResponse{
-				OriginalUrl: v.URL,
-				ShortURL:    v.ShortLink,
+				OriginalURL: v.URL,
+				ShortURL:    handler.baseURL + "/" + v.ShortLink,
 			})
 		}
 	}

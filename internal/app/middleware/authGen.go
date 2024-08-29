@@ -31,14 +31,14 @@ func AuthGen(crypt *generator.CryptGenerator, domain string, logger *zap.Logger)
 			)
 		}
 
-		Uuid, _ := crypt.DecodeValue(auth)
+		UUID, _ := crypt.DecodeValue(auth)
 
 		logger.Info("Auth user",
-			zap.String("Uuid", Uuid),
+			zap.String("UUID", UUID),
 			zap.String("auth.Value", auth),
 		)
 
-		c.Set("UserId", Uuid)
+		c.Set("UserID", UUID)
 
 		c.Next()
 	}

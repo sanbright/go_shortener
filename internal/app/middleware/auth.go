@@ -2,44 +2,37 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"net/http"
 	"sanbright/go_shortener/internal/app/generator"
 )
 
-func Auth(crypt *generator.CryptGenerator, domain string, logger *zap.Logger) gin.HandlerFunc {
+func Auth(crypt *generator.CryptGenerator, logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth, err := c.Cookie("Auth")
 		if err != nil {
 			logger.Info("Request Cookie Error",
 				zap.String("ERROR", err.Error()),
 			)
-			uuidString := uuid.New().String()
-			cookie, _ := crypt.EncodeValue(uuidString)
 
-			c.SetCookie("Auth", cookie, 3600, "", domain, false, true)
+			for _, ck := range c.Request.Cookies() {
+				logger.Info("Request Registered Cookie",
+					zap.String("ck", ck.String()),
+				)
+			}
 
 			c.String(http.StatusUnauthorized, "")
 			c.Abort()
-
-			logger.Info("Uuid",
-				zap.String("uuidString", uuidString),
-				zap.String("cookie", cookie),
-			)
-
 			return
 		}
 
-		Uuid, _ := crypt.DecodeValue(auth)
+		UUID, _ := crypt.DecodeValue(auth)
 
 		logger.Info("Auth user",
-			zap.String("Uuid", Uuid),
+			zap.String("UUID", UUID),
 			zap.String("auth.Value", auth),
 		)
-
-		c.Set("UserId", Uuid)
-
+		c.Set("UserID", UUID)
 		c.Next()
 	}
 }

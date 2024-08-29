@@ -23,11 +23,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS url__uniq ON short_link (url);
 `
 
 type ShortLinkRepositoryInterface interface {
-	Add(shortLink string, url string, userId string) (*entity.ShortLinkEntity, error)
+	Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error)
 	AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error)
 	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
 	FindByURL(URL string) (*entity.ShortLinkEntity, error)
-	FindByUserId(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error)
+	FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error)
 }
 
 type Resolver struct {

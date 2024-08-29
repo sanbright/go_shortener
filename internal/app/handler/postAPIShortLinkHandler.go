@@ -50,16 +50,16 @@ func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 		return
 	}
 
-	userIdParam, ok := ctx.Get("UserId")
+	userIDParam, ok := ctx.Get("UserID")
 	if !ok {
 		ctx.String(http.StatusUnauthorized, "")
 		ctx.Abort()
 		return
 	}
 
-	userId, ok := userIdParam.(string)
+	userID, _ := userIDParam.(string)
 
-	shortLinkEntity, err := handler.service.Add(req.URL, userId)
+	shortLinkEntity, err := handler.service.Add(req.URL, userID)
 
 	statusCode := http.StatusCreated
 	if err != nil {
