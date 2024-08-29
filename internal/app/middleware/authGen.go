@@ -7,7 +7,7 @@ import (
 	"sanbright/go_shortener/internal/app/generator"
 )
 
-func AuthGen(crypt *generator.CryptGenerator, logger *zap.Logger) gin.HandlerFunc {
+func AuthGen(crypt *generator.CryptGenerator, domain string, logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth, err := c.Cookie("Auth")
 		if err != nil {
@@ -15,9 +15,15 @@ func AuthGen(crypt *generator.CryptGenerator, logger *zap.Logger) gin.HandlerFun
 				zap.String("ERROR", err.Error()),
 			)
 
+			for _, ck := range c.Request.Cookies() {
+				logger.Info("Request Registered Cookie",
+					zap.String("ck", ck.String()),
+				)
+			}
+
 			uuidString := uuid.New().String()
 			auth, _ = crypt.EncodeValue(uuidString)
-			c.SetCookie("Auth", auth, 3600, "", "localhost", false, true)
+			c.SetCookie("Auth", auth, 3600, "", domain, false, true)
 
 			logger.Info("Set Cookie",
 				zap.String("uuidString", uuidString),

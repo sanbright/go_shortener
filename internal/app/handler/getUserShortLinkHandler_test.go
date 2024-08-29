@@ -35,7 +35,7 @@ func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 	r, _ := cry.EncodeValue("653e7307-6960-4b60-ab1b-44cd2f662634")
 	logger.Info(r)
 
-	authMiddleware := middleware.Auth(cry, logger)
+	authMiddleware := middleware.Auth(cry, "localhost", logger)
 	type want struct {
 		statusCode int
 		body       string

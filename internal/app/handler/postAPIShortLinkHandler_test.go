@@ -30,7 +30,7 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 		panic(err)
 	}
 
-	authMiddleware := middleware.AuthGen(cry, logger)
+	authMiddleware := middleware.AuthGen(cry, "localhost", logger)
 
 	type want struct {
 		statusCode int
