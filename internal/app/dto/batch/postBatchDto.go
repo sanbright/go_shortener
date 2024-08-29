@@ -20,4 +20,5 @@ type AddBatchDto struct {
 	CorrelationID string
 	OriginalURL   string
 	ShortURL      string
+	UserId        string
 }

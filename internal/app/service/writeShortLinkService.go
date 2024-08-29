@@ -18,10 +18,10 @@ func NewWriteShortLinkService(repository repository.ShortLinkRepositoryInterface
 	return &WriteShortLinkService{repository: repository, generator: generator}
 }
 
-func (service *WriteShortLinkService) Add(url string) (*entity.ShortLinkEntity, error) {
+func (service *WriteShortLinkService) Add(url string, userId string) (*entity.ShortLinkEntity, error) {
 	shortLink := service.generator.UniqGenerate()
 
-	shortLinkEntity, err := service.repository.Add(shortLink, url)
+	shortLinkEntity, err := service.repository.Add(shortLink, url, userId)
 
 	if err != nil {
 		var notUniq *repErr.NotUniqShortLinkError
@@ -38,7 +38,7 @@ func (service *WriteShortLinkService) Add(url string) (*entity.ShortLinkEntity, 
 	return shortLinkEntity, nil
 }
 
-func (service *WriteShortLinkService) AddBatch(links *batch.Request) (*batch.AddBatchDtoList, error) {
+func (service *WriteShortLinkService) AddBatch(links *batch.Request, userId string) (*batch.AddBatchDtoList, error) {
 	var batchList batch.AddBatchDtoList
 
 	for _, element := range *links {
@@ -46,6 +46,7 @@ func (service *WriteShortLinkService) AddBatch(links *batch.Request) (*batch.Add
 			CorrelationID: element.CorrelationID,
 			OriginalURL:   element.OriginalURL,
 			ShortURL:      service.generator.UniqGenerate(),
+			UserId:        userId,
 		})
 	}
 

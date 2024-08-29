@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"go.uber.org/zap"
 	"io"
+	"sanbright/go_shortener/internal/app/generator"
+	"sanbright/go_shortener/internal/app/middleware"
 	"strings"
 	"testing"
 
@@ -19,6 +22,15 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := NewMockShortLinkGenerator()
 	handler := NewPostAPIShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com")
+
+	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
+
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+
+	authMiddleware := middleware.AuthGen(cry, logger)
 
 	type want struct {
 		statusCode int
@@ -92,7 +104,7 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 			context.Writer.Header().Set("Content-Type", "application/json")
 
 			r := setupRouter()
-			r.POST(`/api/shorten`, handler.Handle)
+			r.POST(`/api/shorten`, authMiddleware, handler.Handle)
 			r.ServeHTTP(response, request)
 			result := response.Result()
 

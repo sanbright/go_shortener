@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	repErr "sanbright/go_shortener/internal/app/repository/error"
@@ -35,21 +36,33 @@ func (repo *ShortLinkMemoryRepository) FindByURL(URL string) (*entity.ShortLinkE
 	return nil, fmt.Errorf("not found by URL link: %s", URL)
 }
 
-func (repo *ShortLinkMemoryRepository) Add(shortLink string, url string) (*entity.ShortLinkEntity, error) {
+func (repo *ShortLinkMemoryRepository) FindByUserId(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
+	var entityList []entity.ShortLinkEntity
+
+	for _, v := range repo.Items {
+		if v.UserId == uuid {
+			entityList = append(entityList, *v)
+		}
+	}
+
+	return &entityList, nil
+}
+
+func (repo *ShortLinkMemoryRepository) Add(shortLink string, url string, userId string) (*entity.ShortLinkEntity, error) {
 	found, _ := repo.FindByURL(url)
 
 	if found != nil {
 		return nil, repErr.NewNotUniqShortLinkError(found.URL, nil)
 	}
 
-	repo.Items[shortLink] = &entity.ShortLinkEntity{ShortLink: shortLink, URL: url}
+	repo.Items[shortLink] = entity.NewShortLinkEntity(shortLink, url, userId)
 
 	return repo.Items[shortLink], nil
 }
 
 func (repo *ShortLinkMemoryRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
 	for _, v := range shortLinks {
-		_, err := repo.Add(v.ShortURL, v.OriginalURL)
+		_, err := repo.Add(v.ShortURL, v.OriginalURL, v.UserId)
 
 		if err != nil {
 			return nil, err
