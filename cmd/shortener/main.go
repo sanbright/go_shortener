@@ -62,8 +62,8 @@ func main() {
 	getUserShortLinkHandler := handler.NewGetUserShortLinkHandler(readShortLinkService, logger)
 
 	cry := generator.NewCryptGenerator(CryptoKey)
-	authMiddleware := middleware.Auth(cry, logger)
-	authGenMiddleware := middleware.AuthGen(cry, logger)
+	authMiddleware := middleware.Auth(cry, configuration.DomainAndPort.String(), logger)
+	authGenMiddleware := middleware.AuthGen(cry, configuration.DomainAndPort.String(), logger)
 
 	r := setupRouter(logger)
 	r.GET(`/:id`, getHandler.Handle)

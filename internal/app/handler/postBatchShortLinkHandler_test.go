@@ -25,7 +25,7 @@ func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 	}
 
 	handler := NewPostBatchShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com", logger)
-	authMiddleware := middleware.AuthGen(cry, logger)
+	authMiddleware := middleware.AuthGen(cry, "localhost", logger)
 
 	type want struct {
 		statusCode int
