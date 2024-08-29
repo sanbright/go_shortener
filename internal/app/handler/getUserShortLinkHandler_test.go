@@ -29,13 +29,13 @@ func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 
 	logger := setupLogger()
 
-	handler := NewGetUserShortLinkHandler(service.NewReadShortLinkService(shortLinkRepository), logger)
+	handler := NewGetUserShortLinkHandler(service.NewReadShortLinkService(shortLinkRepository), "http://example.com", logger)
 	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 
 	r, _ := cry.EncodeValue("653e7307-6960-4b60-ab1b-44cd2f662634")
 	logger.Info(r)
 
-	authMiddleware := middleware.Auth(cry, "localhost", logger)
+	authMiddleware := middleware.Auth(cry, logger)
 	type want struct {
 		statusCode int
 		body       string
@@ -58,7 +58,7 @@ func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 			request: "/api/user/urls",
 			want: want{
 				statusCode: http.StatusOK,
-				body:       "[{\"original_url\":\"https:\\\\\\\\testing.com\\\\ksjadkjas\",\"short_url\":\"sa42d45ds2\"},{\"original_url\":\"https:\\\\\\\\google.com\",\"short_url\":\"qwetyr123iu\"}]",
+				body:       "[{\"original_url\":\"https:\\\\\\\\testing.com\\\\ksjadkjas\",\"short_url\":\"http://example.com/sa42d45ds2\"},{\"original_url\":\"https:\\\\\\\\google.com\",\"short_url\":\"http://example.com/qwetyr123iu\"}]",
 			},
 		},
 		{
@@ -67,8 +67,8 @@ func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYB7ido58lc8mLgBXaUzKAoydcxieg==",
 			request: "/api/user/urls",
 			want: want{
-				statusCode: http.StatusOK,
-				body:       "null",
+				statusCode: http.StatusNoContent,
+				body:       "",
 			},
 		},
 		{

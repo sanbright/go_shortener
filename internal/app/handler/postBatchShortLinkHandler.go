@@ -43,16 +43,16 @@ func (handler *PostBatchShortLinkHandler) Handle(ctx *gin.Context) {
 	}
 	ctx.Header("Content-type", "application/json")
 
-	userIdParam, ok := ctx.Get("UserId")
+	userIDParam, ok := ctx.Get("UserID")
 	if !ok {
 		ctx.String(http.StatusUnauthorized, "")
 		ctx.Abort()
 		return
 	}
 
-	userId, ok := userIdParam.(string)
+	userID, _ := userIDParam.(string)
 
-	list, err := handler.service.AddBatch(req, userId)
+	list, err := handler.service.AddBatch(req, userID)
 
 	statusCode := http.StatusCreated
 

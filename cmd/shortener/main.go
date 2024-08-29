@@ -59,11 +59,11 @@ func main() {
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	batchAPIHandler := handler.NewPostBatchShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
 	getPing := handler.NewGetPingHandler(configuration)
-	getUserShortLinkHandler := handler.NewGetUserShortLinkHandler(readShortLinkService, logger)
+	getUserShortLinkHandler := handler.NewGetUserShortLinkHandler(readShortLinkService, configuration.BaseURL.URL, logger)
 
 	cry := generator.NewCryptGenerator(CryptoKey)
-	authMiddleware := middleware.Auth(cry, configuration.DomainAndPort.String(), logger)
-	authGenMiddleware := middleware.AuthGen(cry, configuration.DomainAndPort.String(), logger)
+	authMiddleware := middleware.Auth(cry, logger)
+	authGenMiddleware := middleware.AuthGen(cry, configuration.DomainAndPort.Domain, logger)
 
 	r := setupRouter(logger)
 	r.GET(`/:id`, getHandler.Handle)

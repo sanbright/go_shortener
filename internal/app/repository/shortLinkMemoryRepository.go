@@ -36,11 +36,11 @@ func (repo *ShortLinkMemoryRepository) FindByURL(URL string) (*entity.ShortLinkE
 	return nil, fmt.Errorf("not found by URL link: %s", URL)
 }
 
-func (repo *ShortLinkMemoryRepository) FindByUserId(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
+func (repo *ShortLinkMemoryRepository) FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
 	var entityList []entity.ShortLinkEntity
 
 	for _, v := range repo.Items {
-		if v.UserId == uuid {
+		if v.UserID == uuid {
 			entityList = append(entityList, *v)
 		}
 	}
@@ -48,21 +48,21 @@ func (repo *ShortLinkMemoryRepository) FindByUserId(uuid uuid.UUID) (*[]entity.S
 	return &entityList, nil
 }
 
-func (repo *ShortLinkMemoryRepository) Add(shortLink string, url string, userId string) (*entity.ShortLinkEntity, error) {
+func (repo *ShortLinkMemoryRepository) Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error) {
 	found, _ := repo.FindByURL(url)
 
 	if found != nil {
 		return nil, repErr.NewNotUniqShortLinkError(found.URL, nil)
 	}
 
-	repo.Items[shortLink] = entity.NewShortLinkEntity(shortLink, url, userId)
+	repo.Items[shortLink] = entity.NewShortLinkEntity(shortLink, url, userID)
 
 	return repo.Items[shortLink], nil
 }
 
 func (repo *ShortLinkMemoryRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
 	for _, v := range shortLinks {
-		_, err := repo.Add(v.ShortURL, v.OriginalURL, v.UserId)
+		_, err := repo.Add(v.ShortURL, v.OriginalURL, v.UserID)
 
 		if err != nil {
 			return nil, err

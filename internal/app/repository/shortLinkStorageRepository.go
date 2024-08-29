@@ -82,7 +82,7 @@ func (repo *ShortLinkStorageRepository) FindByURL(URL string) (*entity.ShortLink
 	return nil, nil
 }
 
-func (repo *ShortLinkStorageRepository) FindByUserId(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
+func (repo *ShortLinkStorageRepository) FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
 	var entityList *[]entity.ShortLinkEntity
 	var shortLinkEntity entity.ShortLinkEntity
 
@@ -106,14 +106,14 @@ func (repo *ShortLinkStorageRepository) FindByUserId(uuid uuid.UUID) (*[]entity.
 	return entityList, nil
 }
 
-func (repo *ShortLinkStorageRepository) Add(shortLink string, url string, userId string) (*entity.ShortLinkEntity, error) {
+func (repo *ShortLinkStorageRepository) Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error) {
 	found, _ := repo.FindByURL(url)
 
 	if found != nil {
 		return nil, repErr.NewNotUniqShortLinkError(found.URL, nil)
 	}
 
-	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url, userId)
+	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url, userID)
 
 	s, err := json.Marshal(newShortLinkEntity)
 
@@ -132,7 +132,7 @@ func (repo *ShortLinkStorageRepository) Add(shortLink string, url string, userId
 
 func (repo *ShortLinkStorageRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
 	for _, v := range shortLinks {
-		_, err := repo.Add(v.ShortURL, v.OriginalURL, v.UserId)
+		_, err := repo.Add(v.ShortURL, v.OriginalURL, v.UserID)
 
 		if err != nil {
 			return nil, err

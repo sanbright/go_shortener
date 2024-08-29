@@ -3,6 +3,6 @@ package user
 type Response []*ItemResponse
 
 type ItemResponse struct {
-	OriginalUrl string `json:"original_url"`
+	OriginalURL string `json:"original_url"`
 	ShortURL    string `json:"short_url"`
 }

@@ -18,6 +18,6 @@ func (service *ReadShortLinkService) GetByShortLink(shortLink string) (*entity.S
 	return service.repository.FindByShortLink(shortLink)
 }
 
-func (service *ReadShortLinkService) GetByUserId(userId string) (*[]entity.ShortLinkEntity, error) {
-	return service.repository.FindByUserId(uuid.MustParse(userId))
+func (service *ReadShortLinkService) GetByUserID(userID string) (*[]entity.ShortLinkEntity, error) {
+	return service.repository.FindByUserID(uuid.MustParse(userID))
 }
