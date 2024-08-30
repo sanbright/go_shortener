@@ -9,6 +9,7 @@ type ShortLinkEntity struct {
 	ShortLink string    `json:"short_link" db:"short_link"`
 	URL       string    `json:"url" db:"url"`
 	UserID    uuid.UUID `db:"user_id"`
+	IsDeleted bool      `db:"is_deleted"`
 }
 
 func NewShortLinkEntity(shortLink string, url string, userID string) *ShortLinkEntity {
@@ -17,5 +18,6 @@ func NewShortLinkEntity(shortLink string, url string, userID string) *ShortLinkE
 		ShortLink: shortLink,
 		URL:       url,
 		UserID:    uuid.MustParse(userID),
+		IsDeleted: false,
 	}
 }

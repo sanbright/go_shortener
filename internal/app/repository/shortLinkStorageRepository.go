@@ -83,7 +83,7 @@ func (repo *ShortLinkStorageRepository) FindByURL(URL string) (*entity.ShortLink
 }
 
 func (repo *ShortLinkStorageRepository) FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
-	var entityList *[]entity.ShortLinkEntity
+	var entityList []entity.ShortLinkEntity
 	var shortLinkEntity entity.ShortLinkEntity
 
 	_, err := repo.file.Seek(0, io.SeekStart)
@@ -99,11 +99,11 @@ func (repo *ShortLinkStorageRepository) FindByUserID(uuid uuid.UUID) (*[]entity.
 				return nil, err
 			}
 
-			*entityList = append(*entityList, shortLinkEntity)
+			entityList = append(entityList, shortLinkEntity)
 		}
 	}
 
-	return entityList, nil
+	return &entityList, nil
 }
 
 func (repo *ShortLinkStorageRepository) Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error) {
@@ -140,4 +140,8 @@ func (repo *ShortLinkStorageRepository) AddBatch(shortLinks batch.AddBatchDtoLis
 	}
 
 	return &shortLinks, nil
+}
+
+func (repo *ShortLinkStorageRepository) Delete(shortLinkList []string, userID string) error {
+	return nil
 }

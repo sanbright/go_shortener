@@ -21,7 +21,9 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := NewMockShortLinkGenerator()
-	handler := NewPostAPIShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com")
+	logger := setupLogger()
+
+	handler := NewPostAPIShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger), "http://example.com")
 
 	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 

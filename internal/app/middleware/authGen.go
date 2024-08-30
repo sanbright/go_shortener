@@ -23,7 +23,7 @@ func AuthGen(crypt *generator.CryptGenerator, domain string, logger *zap.Logger)
 
 			uuidString := uuid.New().String()
 			auth, _ = crypt.EncodeValue(uuidString)
-			c.SetCookie("Auth", auth, 3600, "", domain, false, true)
+			c.SetCookie("Auth", auth, 200000, "", domain, false, true)
 
 			logger.Info("Set Cookie",
 				zap.String("uuidString", uuidString),

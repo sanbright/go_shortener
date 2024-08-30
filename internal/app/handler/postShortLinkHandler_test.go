@@ -31,9 +31,9 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 	shortLinkGenerator := NewMockShortLinkGenerator()
-	handler := NewPostShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator), "http://example.com")
-	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 	logger := setupLogger()
+	handler := NewPostShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger), "http://example.com")
+	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 	authMiddleware := middleware.AuthGen(cry, "localhost", logger)
 
 	type want struct {

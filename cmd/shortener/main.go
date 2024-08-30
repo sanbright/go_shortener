@@ -53,13 +53,14 @@ func main() {
 	shortLinkRepository, _ := repository.NewRepositoryResolver(configuration, logger).Execute()
 
 	readShortLinkService := service.NewReadShortLinkService(shortLinkRepository)
-	writeShortLinkService := service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator)
+	writeShortLinkService := service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger)
 	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	batchAPIHandler := handler.NewPostBatchShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
 	getPing := handler.NewGetPingHandler(configuration)
 	getUserShortLinkHandler := handler.NewGetUserShortLinkHandler(readShortLinkService, configuration.BaseURL.URL, logger)
+	deleteUserShortLinkHandler := handler.NewDeleteUserShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
 
 	cry := generator.NewCryptGenerator(CryptoKey)
 	authMiddleware := middleware.Auth(cry, logger)
@@ -71,6 +72,7 @@ func main() {
 	r.POST(`/api/shorten`, authGenMiddleware, postAPIHandler.Handle)
 	r.POST(`/api/shorten/batch`, authGenMiddleware, batchAPIHandler.Handle)
 	r.GET(`/api/user/urls`, authMiddleware, getUserShortLinkHandler.Handle)
+	r.DELETE(`/api/user/urls`, authMiddleware, deleteUserShortLinkHandler.Handle)
 	r.GET(`/ping`, getPing.Handle)
 	err = r.Run(configuration.DomainAndPort.String())
 

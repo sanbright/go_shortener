@@ -3,12 +3,14 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	repErr "sanbright/go_shortener/internal/app/repository/error"
+	"strings"
 )
 
 type ShortLinkDBRepository struct {
@@ -53,14 +55,15 @@ func (repo *ShortLinkDBRepository) FindByShortLink(shortLink string) (*entity.Sh
  					uuid,
 					short_link,
 					url,
-					user_id
+					user_id,
+					is_deleted
 				FROM short_link sl
 					WHERE sl.short_link = $1
 				LIMIT 1`,
 		shortLink)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, err
+		return nil, nil
 	}
 
 	return &shortLinkEntity, err
@@ -74,9 +77,11 @@ func (repo *ShortLinkDBRepository) FindByURL(URL string) (*entity.ShortLinkEntit
  					uuid,
 					short_link,
 					url,
-					user_id
+					user_id,
+					is_deleted
 				FROM short_link sl
 					WHERE sl.url = $1
+					AND sl.is_deleted = false
 				LIMIT 1`,
 		URL)
 
@@ -95,9 +100,11 @@ func (repo *ShortLinkDBRepository) FindByUserID(uuid uuid.UUID) (*[]entity.Short
  					uuid,
 					short_link,
 					url,
-					user_id
+					user_id,
+					is_deleted
 				FROM short_link sl
-				WHERE sl.user_id = $1`,
+				WHERE sl.user_id = $1
+				AND sl.is_deleted = false`,
 		uuid.String())
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -139,4 +146,25 @@ func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*
 	tx.Commit()
 
 	return &shortLinks, nil
+}
+
+func (repo *ShortLinkDBRepository) Delete(shortLinkList []string, userID string) error {
+	var inArray []string
+	var params []interface{}
+
+	params = append(params, userID)
+	i := 2
+	for _, shortLink := range shortLinkList {
+		inArray = append(inArray, "$"+fmt.Sprintf("%d", i))
+		params = append(params, shortLink)
+		i++
+	}
+	_, err := repo.db.Exec(
+		fmt.Sprintf(`update short_link SET is_deleted = true WHERE user_id = $1 AND short_link IN (%s)`, strings.Join(inArray, ",")), params...)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

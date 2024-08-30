@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS short_link (
 	"short_link" VARCHAR(10) NOT NULL,
 	"url" TEXT NOT NULL,
 	"user_id" UUID,
+	"is_deleted" BOOLEAN NOT NULL DEFAULT false,
 	PRIMARY KEY ("uuid")
 );
 
@@ -28,6 +29,7 @@ type ShortLinkRepositoryInterface interface {
 	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
 	FindByURL(URL string) (*entity.ShortLinkEntity, error)
 	FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error)
+	Delete(shortLinkList []string, userID string) error
 }
 
 type Resolver struct {

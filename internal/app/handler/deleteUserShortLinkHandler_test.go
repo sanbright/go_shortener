@@ -13,23 +13,23 @@ import (
 	"testing"
 )
 
-func TestGetUserShortLinkHandler_Handle(t *testing.T) {
+func TestDeleteUserShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 
-	_, err := shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas", "653e7307-6960-4b60-ab1b-44cd2f662634")
+	_, err := shortLinkRepository.Add("iqwnmqw9001", "https:\\\\testing.com\\ksjadkjas", "653e7307-6960-4b60-ab1b-44cd2f662634")
 	if err != nil {
 		t.Errorf("ShortLinkFixture: Error = '%v'", err.Error())
 	}
 
-	_, err = shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com", "653e7307-6960-4b60-ab1b-44cd2f662634")
+	_, err = shortLinkRepository.Add("hj3393893fn", "https:\\\\google.com", "653e7307-6960-4b60-ab1b-44cd2f662634")
 	if err != nil {
 		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
 	}
 
 	logger := setupLogger()
-
-	handler := NewGetUserShortLinkHandler(service.NewReadShortLinkService(shortLinkRepository), "http://example.com", logger)
+	shortLinkGenerator := NewMockShortLinkGenerator()
+	handler := NewDeleteUserShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger), "http://example.com", logger)
 	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 
 	authMiddleware := middleware.Auth(cry, logger)
@@ -49,28 +49,41 @@ func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 		want        want
 	}{
 		{
-			name:    "SuccessGettingUserShortLink_1",
-			method:  http.MethodGet,
+			name:    "SuccessRemoveUserShortLink_1",
+			method:  http.MethodDelete,
 			auth:    "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
 			request: "/api/user/urls",
+			body:    "[\"iqwnmqw9001\"]",
 			want: want{
-				statusCode: http.StatusOK,
-				body:       "[{\"original_url\":\"https:\\\\\\\\testing.com\\\\ksjadkjas\",\"short_url\":\"http://example.com/sa42d45ds2\"},{\"original_url\":\"https:\\\\\\\\google.com\",\"short_url\":\"http://example.com/qwetyr123iu\"}]",
+				statusCode: http.StatusAccepted,
+				body:       "",
 			},
 		},
 		{
-			name:    "SuccessGettingUserShortLink_2",
-			method:  http.MethodGet,
-			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYB7ido58lc8mLgBXaUzKAoydcxieg==",
+			name:    "SuccessRemoveUserShortLink_2",
+			method:  http.MethodDelete,
+			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYBg+invalid==",
 			request: "/api/user/urls",
+			body:    "[\"iqwnmqw9001\",\"hj3393893fn\"]",
 			want: want{
-				statusCode: http.StatusNoContent,
+				statusCode: http.StatusAccepted,
 				body:       "",
 			},
 		},
 		{
 			name:    "UsageMethodNotAllowed",
 			method:  http.MethodPost,
+			request: "/api/user/urls",
+			body:    "",
+			want: want{
+				statusCode: http.StatusMethodNotAllowed,
+				body:       "405 method not allowed",
+				location:   "",
+			},
+		},
+		{
+			name:    "UsageMethodNotAllowed",
+			method:  http.MethodGet,
 			request: "/api/user/urls",
 			body:    "",
 			want: want{
@@ -93,7 +106,7 @@ func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 			context.Request = request
 
 			r := setupRouter()
-			r.GET(`/api/user/urls`, authMiddleware, handler.Handle)
+			r.DELETE(`/api/user/urls`, authMiddleware, handler.Handle)
 			r.ServeHTTP(response, request)
 
 			if code := tt.want.statusCode; code != response.Code {

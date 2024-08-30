@@ -71,3 +71,11 @@ func (repo *ShortLinkMemoryRepository) AddBatch(shortLinks batch.AddBatchDtoList
 
 	return &shortLinks, nil
 }
+
+func (repo *ShortLinkMemoryRepository) Delete(shortLinkList []string, userID string) error {
+	for _, shortLink := range shortLinkList {
+		repo.Items[shortLink].IsDeleted = true
+	}
+
+	return nil
+}
