@@ -6,10 +6,10 @@ import (
 )
 
 type ReadShortLinkService struct {
-	repository repository.ReadShortLinkRepositoryInterface
+	repository repository.ShortLinkRepositoryInterface
 }
 
-func NewReadShortLinkService(repository repository.ReadShortLinkRepositoryInterface) *ReadShortLinkService {
+func NewReadShortLinkService(repository repository.ShortLinkRepositoryInterface) *ReadShortLinkService {
 	return &ReadShortLinkService{repository: repository}
 }
 

@@ -1,4 +1,4 @@
-package dto
+package api
 
 type Request struct {
 	URL string `json:"url"`
