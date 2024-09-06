@@ -31,5 +31,11 @@ func (handler *GetShortLinkHandler) Handle(ctx *gin.Context) {
 
 	defer ctx.Request.Body.Close()
 
+	if shortLinkEntity.IsDeleted {
+		ctx.String(http.StatusGone, "Not found link")
+		ctx.Abort()
+		return
+	}
+
 	ctx.Redirect(http.StatusTemporaryRedirect, shortLinkEntity.URL)
 }

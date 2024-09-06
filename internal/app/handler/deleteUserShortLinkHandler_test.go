@@ -1,52 +1,38 @@
 package handler
 
 import (
-	"go.uber.org/zap"
+	"github.com/gin-gonic/gin"
 	"io"
-	"strings"
-	"testing"
-
 	"net/http"
 	"net/http/httptest"
-
+	"sanbright/go_shortener/internal/app/generator"
+	"sanbright/go_shortener/internal/app/middleware"
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
-
-	"github.com/gin-gonic/gin"
+	"strings"
+	"testing"
 )
 
-func setupRouter() *gin.Engine {
-	r := gin.Default()
-	r.HandleMethodNotAllowed = true
-
-	return r
-}
-
-func setupLogger() *zap.Logger {
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		panic(err)
-	}
-
-	return logger
-}
-
-func TestGetShortLinkHandler_Handle(t *testing.T) {
+func TestDeleteUserShortLinkHandler_Handle(t *testing.T) {
 
 	shortLinkRepository := repository.NewShortLinkRepository()
 
-	_, err := shortLinkRepository.Add("sa42d45ds2", "https:\\\\testing.com\\ksjadkjas", "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
+	_, err := shortLinkRepository.Add("iqwnmqw9001", "https:\\\\testing.com\\ksjadkjas", "653e7307-6960-4b60-ab1b-44cd2f662634")
 	if err != nil {
 		t.Errorf("ShortLinkFixture: Error = '%v'", err.Error())
 	}
 
-	_, err = shortLinkRepository.Add("qwetyr123iu", "https:\\\\google.com", "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
+	_, err = shortLinkRepository.Add("hj3393893fn", "https:\\\\google.com", "653e7307-6960-4b60-ab1b-44cd2f662634")
 	if err != nil {
 		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
 	}
 
-	handler := NewGetShortLinkHandler(service.NewReadShortLinkService(shortLinkRepository))
+	logger := setupLogger()
+	shortLinkGenerator := NewMockShortLinkGenerator()
+	handler := NewDeleteUserShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger), "http://example.com", logger)
+	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 
+	authMiddleware := middleware.Auth(cry, logger)
 	type want struct {
 		statusCode int
 		body       string
@@ -56,35 +42,38 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 	tests := []struct {
 		name        string
 		method      string
+		auth        string
 		contentType string
 		request     string
 		body        string
 		want        want
 	}{
 		{
-			name:    "SuccessGettingShortLink_1",
-			method:  http.MethodGet,
-			request: "/sa42d45ds2",
+			name:    "SuccessRemoveUserShortLink_1",
+			method:  http.MethodDelete,
+			auth:    "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			request: "/api/user/urls",
+			body:    "[\"iqwnmqw9001\"]",
 			want: want{
-				statusCode: http.StatusTemporaryRedirect,
-				body:       "<a href=\"https:\\\\testing.com\\ksjadkjas\">Temporary Redirect</a>.\n\n",
-				location:   "https:\\\\testing.com\\ksjadkjas",
+				statusCode: http.StatusAccepted,
+				body:       "",
 			},
 		},
 		{
-			name:    "SuccessGettingShortLink_2",
-			method:  http.MethodGet,
-			request: "/qwetyr123iu",
+			name:    "SuccessRemoveUserShortLink_2",
+			method:  http.MethodDelete,
+			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYBg+invalid==",
+			request: "/api/user/urls",
+			body:    "[\"iqwnmqw9001\",\"hj3393893fn\"]",
 			want: want{
-				statusCode: http.StatusTemporaryRedirect,
-				body:       "<a href=\"https:\\\\google.com\">Temporary Redirect</a>.\n\n",
-				location:   "https:\\\\google.com",
+				statusCode: http.StatusAccepted,
+				body:       "",
 			},
 		},
 		{
 			name:    "UsageMethodNotAllowed",
 			method:  http.MethodPost,
-			request: "/asd",
+			request: "/api/user/urls",
 			body:    "",
 			want: want{
 				statusCode: http.StatusMethodNotAllowed,
@@ -93,24 +82,13 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name:    "UndefinedURL",
+			name:    "UsageMethodNotAllowed",
 			method:  http.MethodGet,
-			request: "/testesttest",
+			request: "/api/user/urls",
 			body:    "",
 			want: want{
-				statusCode: http.StatusBadRequest,
-				body:       "not found by short link: testesttest",
-				location:   "",
-			},
-		},
-		{
-			name:    "UncorrectURL",
-			method:  http.MethodGet,
-			request: "/",
-			body:    "",
-			want: want{
-				statusCode: http.StatusNotFound,
-				body:       "404 page not found",
+				statusCode: http.StatusMethodNotAllowed,
+				body:       "405 method not allowed",
 				location:   "",
 			},
 		},
@@ -119,6 +97,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
+			request.AddCookie(&http.Cookie{Name: "Auth", Value: tt.auth})
 
 			response := httptest.NewRecorder()
 			context, _ := gin.CreateTestContext(response)
@@ -127,7 +106,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			context.Request = request
 
 			r := setupRouter()
-			r.GET(`/:id`, handler.Handle)
+			r.DELETE(`/api/user/urls`, authMiddleware, handler.Handle)
 			r.ServeHTTP(response, request)
 
 			if code := tt.want.statusCode; code != response.Code {
@@ -142,10 +121,6 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 
 			if tbody := tt.want.body; tbody != string(body) {
 				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tbody, string(body))
-			}
-
-			if location := tt.want.location; location != response.Header().Get("Location") {
-				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, location, response.Header().Get("Location"))
 			}
 		})
 	}
