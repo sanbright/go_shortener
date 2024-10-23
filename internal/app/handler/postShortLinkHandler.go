@@ -38,7 +38,16 @@ func (handler *PostShortLinkHandler) Handle(ctx *gin.Context) {
 
 	defer ctx.Request.Body.Close()
 
-	shortLinkEntity, err := handler.service.Add(string(url))
+	userIDParam, ok := ctx.Get("UserID")
+	if !ok {
+		ctx.String(http.StatusUnauthorized, "")
+		ctx.Abort()
+		return
+	}
+
+	userID, _ := userIDParam.(string)
+
+	shortLinkEntity, err := handler.service.Add(string(url), userID)
 	statusCode := http.StatusCreated
 
 	if err != nil {

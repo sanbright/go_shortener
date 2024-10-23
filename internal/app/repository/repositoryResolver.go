@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 	"sanbright/go_shortener/internal/app/dto/batch"
@@ -13,6 +14,8 @@ CREATE TABLE IF NOT EXISTS short_link (
 	"uuid" UUID NOT NULL,
 	"short_link" VARCHAR(10) NOT NULL,
 	"url" TEXT NOT NULL,
+	"user_id" UUID,
+	"is_deleted" BOOLEAN NOT NULL DEFAULT false,
 	PRIMARY KEY ("uuid")
 );
 
@@ -21,10 +24,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS url__uniq ON short_link (url);
 `
 
 type ShortLinkRepositoryInterface interface {
-	Add(shortLink string, url string) (*entity.ShortLinkEntity, error)
+	Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error)
 	AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error)
 	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
 	FindByURL(URL string) (*entity.ShortLinkEntity, error)
+	FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error)
+	Delete(shortLinkList []string, userID string) error
 }
 
 type Resolver struct {
