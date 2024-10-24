@@ -2,7 +2,7 @@ package generator
 
 import "github.com/dchest/uniuri"
 
-type ShortLinkGeneratorInterface interface {
+type IShortLinkGenerator interface {
 	UniqGenerate() string
 }
 

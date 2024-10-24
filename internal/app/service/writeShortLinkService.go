@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"go.uber.org/zap"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/app/generator"
@@ -10,15 +9,17 @@ import (
 	repErr "sanbright/go_shortener/internal/app/repository/error"
 	"strings"
 	"sync"
+
+	"go.uber.org/zap"
 )
 
 type WriteShortLinkService struct {
-	repository repository.ShortLinkRepositoryInterface
-	generator  generator.ShortLinkGeneratorInterface
+	repository repository.IShortLinkRepository
+	generator  generator.IShortLinkGenerator
 	logger     *zap.Logger
 }
 
-func NewWriteShortLinkService(repository repository.ShortLinkRepositoryInterface, generator generator.ShortLinkGeneratorInterface, logger *zap.Logger) *WriteShortLinkService {
+func NewWriteShortLinkService(repository repository.IShortLinkRepository, generator generator.IShortLinkGenerator, logger *zap.Logger) *WriteShortLinkService {
 	return &WriteShortLinkService{repository: repository, generator: generator, logger: logger}
 }
 

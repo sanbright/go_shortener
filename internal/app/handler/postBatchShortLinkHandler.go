@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"net/http"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	repErr "sanbright/go_shortener/internal/app/repository/error"
 	"sanbright/go_shortener/internal/app/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type PostBatchShortLinkHandler struct {

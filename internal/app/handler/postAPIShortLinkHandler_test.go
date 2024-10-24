@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"go.uber.org/zap"
 	"io"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/middleware"
 	"strings"
 	"testing"
+
+	"go.uber.org/zap"
 
 	"net/http"
 	"net/http/httptest"

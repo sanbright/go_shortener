@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gin-contrib/gzip"
 	"log"
 	"os"
 	"sanbright/go_shortener/internal/app/generator"
@@ -10,6 +9,8 @@ import (
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 	"sanbright/go_shortener/internal/config"
+
+	"github.com/gin-contrib/gzip"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

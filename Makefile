@@ -15,3 +15,10 @@ prof-h:
 
 coverage:
 	go test -v -coverpkg=./... -coverprofile=profile.cov ./...
+gofmt:
+	gofmt -w cmd/*
+	gofmt -w internal/*
+
+goimports:
+	goimports -local "github.com/sanbright/go_shortener" -w cmd/*
+	goimports -local "github.com/sanbright/go_shortener" -w internal/*

@@ -2,10 +2,11 @@ package repository
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	repErr "sanbright/go_shortener/internal/app/repository/error"
+
+	"github.com/google/uuid"
 )
 
 type ShortLinkMemoryRepository struct {

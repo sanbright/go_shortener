@@ -1,16 +1,17 @@
 package service
 
 import (
-	"github.com/google/uuid"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/app/repository"
+
+	"github.com/google/uuid"
 )
 
 type ReadShortLinkService struct {
-	repository repository.ShortLinkRepositoryInterface
+	repository repository.IShortLinkRepository
 }
 
-func NewReadShortLinkService(repository repository.ShortLinkRepositoryInterface) *ReadShortLinkService {
+func NewReadShortLinkService(repository repository.IShortLinkRepository) *ReadShortLinkService {
 	return &ReadShortLinkService{repository: repository}
 }
 

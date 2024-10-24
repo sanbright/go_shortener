@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +10,8 @@ import (
 	"sanbright/go_shortener/internal/app/service"
 	"strings"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestGetUserShortLinkHandler_Handle(t *testing.T) {

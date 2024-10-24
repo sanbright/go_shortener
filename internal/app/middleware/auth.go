@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"net/http"
 	"sanbright/go_shortener/internal/app/generator"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func Auth(crypt *generator.CryptGenerator, logger *zap.Logger) gin.HandlerFunc {

@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"sanbright/go_shortener/internal/app/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 type GetShortLinkHandler struct {

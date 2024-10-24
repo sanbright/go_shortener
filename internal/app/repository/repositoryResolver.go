@@ -1,12 +1,13 @@
 package repository
 
 import (
-	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/config"
+
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 const schema = `
@@ -23,7 +24,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS short_link__uniq ON short_link (short_link);
 CREATE UNIQUE INDEX IF NOT EXISTS url__uniq ON short_link (url);
 `
 
-type ShortLinkRepositoryInterface interface {
+type IShortLinkRepository interface {
 	Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error)
 	AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error)
 	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
@@ -42,7 +43,7 @@ func NewRepositoryResolver(config *config.Config, log *zap.Logger) *Resolver {
 	return &Resolver{Config: config, Log: log}
 }
 
-func (r *Resolver) Execute() (ShortLinkRepositoryInterface, error) {
+func (r *Resolver) Execute() (IShortLinkRepository, error) {
 	if len(r.Config.DatabaseDSN) > 0 {
 		db, _ := r.InitDB()
 

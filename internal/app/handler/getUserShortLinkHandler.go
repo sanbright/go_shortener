@@ -2,11 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"net/http"
 	"sanbright/go_shortener/internal/app/dto/user"
 	"sanbright/go_shortener/internal/app/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type GetUserShortLinkHandler struct {

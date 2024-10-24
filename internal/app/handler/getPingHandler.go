@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"sanbright/go_shortener/internal/config"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 type GetPingHandler struct {
