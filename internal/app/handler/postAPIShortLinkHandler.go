@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"go.uber.org/zap"
 	"net/http"
 	"sanbright/go_shortener/internal/app/dto/api"
 	repErr "sanbright/go_shortener/internal/app/repository/error"
@@ -15,26 +16,28 @@ import (
 type PostAPIShortLinkHandler struct {
 	service *service.WriteShortLinkService
 	baseURL string
+	log     *zap.Logger
 }
 
-func NewPostAPIShortLinkHandler(service *service.WriteShortLinkService, baseURL string) *PostAPIShortLinkHandler {
-	return &PostAPIShortLinkHandler{service: service, baseURL: baseURL}
+func NewPostAPIShortLinkHandler(service *service.WriteShortLinkService, baseURL string, logger *zap.Logger) *PostAPIShortLinkHandler {
+	return &PostAPIShortLinkHandler{service: service, baseURL: baseURL, log: logger}
 }
 
 func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
-
 	var req *api.Request
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(ctx.Request.Body)
 	defer ctx.Request.Body.Close()
 	if err != nil {
+		handler.log.Error("Add Batch Error", zap.Error(err))
 		ctx.String(http.StatusBadRequest, "%s", err.Error())
 		ctx.Abort()
 		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
+		handler.log.Error("json", zap.Error(err))
 		ctx.String(http.StatusBadRequest, "%s", err.Error())
 		ctx.Abort()
 		return
