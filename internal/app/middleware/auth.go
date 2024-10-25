@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Auth middleware проверяет по Cookie авторизован ли пользователь
 func Auth(crypt *generator.CryptGenerator, logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth, err := c.Cookie("Auth")

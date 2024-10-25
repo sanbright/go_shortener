@@ -1,3 +1,4 @@
+// Package generator содержит набор инструментов для генерации и шифрования данных.
 package generator
 
 import (
@@ -9,14 +10,18 @@ import (
 	"io"
 )
 
+// CryptGenerator Структура выполняющая шифрование строк с использованием ключа шифрования.
 type CryptGenerator struct {
+	// key - секретное слово шифрования и дешифрования.
 	key []byte
 }
 
+// NewCryptGenerator Конструктор шифрователя key - ключ шифрования.
 func NewCryptGenerator(key string) *CryptGenerator {
 	return &CryptGenerator{key: []byte(key)}
 }
 
+// EncodeValue производит декодирование строки, value - принимает защифровонную строку.
 func (c *CryptGenerator) EncodeValue(value string) (string, error) {
 	byteMsg := []byte(value)
 	block, err := aes.NewCipher(c.key)
@@ -36,6 +41,7 @@ func (c *CryptGenerator) EncodeValue(value string) (string, error) {
 	return base64.StdEncoding.EncodeToString(cipherText), nil
 }
 
+// DecodeValue - производит декодирование строки переднноый в value.
 func (c *CryptGenerator) DecodeValue(value string) (string, error) {
 	cipherText, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {

@@ -22,3 +22,10 @@ gofmt:
 goimports:
 	goimports -local "github.com/sanbright/go_shortener" -w cmd/*
 	goimports -local "github.com/sanbright/go_shortener" -w internal/*
+
+godoc-l:
+	sudo cp -r ./ /usr/local/go/src/sanbright/go_shortener
+
+godoc:
+	sudo cp -r ./ /usr/local/go/src/sanbright/go_shortener
+	godoc -http=:9009

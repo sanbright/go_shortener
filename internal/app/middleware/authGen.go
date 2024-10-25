@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// AuthGen middleware проверяет по Cookie авторизован ли пользователь, если нет то авторизует его
 func AuthGen(crypt *generator.CryptGenerator, domain string, logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth, err := c.Cookie("Auth")

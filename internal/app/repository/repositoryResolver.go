@@ -1,3 +1,4 @@
+// Package repository пакет для работы с хранилищем данных
 package repository
 
 import (
