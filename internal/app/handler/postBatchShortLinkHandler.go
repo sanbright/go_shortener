@@ -13,16 +13,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// PostBatchShortLinkHandler обработчик создания коротких ссылок пачкам данных
 type PostBatchShortLinkHandler struct {
 	service *service.WriteShortLinkService
 	logger  *zap.Logger
 	baseURL string
 }
 
+// NewPostBatchShortLinkHandler конструктор обработчика создания коротких ссылок пачкам данных
 func NewPostBatchShortLinkHandler(service *service.WriteShortLinkService, baseURL string, logger *zap.Logger) *PostBatchShortLinkHandler {
 	return &PostBatchShortLinkHandler{service: service, baseURL: baseURL, logger: logger}
 }
 
+// Handle создания коротких ссылок пачками
 func (handler *PostBatchShortLinkHandler) Handle(ctx *gin.Context) {
 	var req *batch.Request
 	var buf bytes.Buffer

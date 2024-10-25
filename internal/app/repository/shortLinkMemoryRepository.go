@@ -9,16 +9,21 @@ import (
 	"github.com/google/uuid"
 )
 
+// ShortLinkMemoryRepository хранилище коротких ссылкок в памяти
 type ShortLinkMemoryRepository struct {
 	Items map[string]*entity.ShortLinkEntity
 }
 
+// NewShortLinkRepository конструктор хранилища коротких ссылкок в памяти
 func NewShortLinkRepository() *ShortLinkMemoryRepository {
 	return &ShortLinkMemoryRepository{
 		Items: make(map[string]*entity.ShortLinkEntity),
 	}
 }
 
+// FindByShortLink происк в хранилище информации по короткой ссылке
+//
+//	shortLink - краткая ссылка
 func (repo *ShortLinkMemoryRepository) FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error) {
 	if shortLinkEntity, exists := repo.Items[shortLink]; exists {
 		return shortLinkEntity, nil
@@ -27,6 +32,9 @@ func (repo *ShortLinkMemoryRepository) FindByShortLink(shortLink string) (*entit
 	return nil, fmt.Errorf("not found by short link: %s", shortLink)
 }
 
+// FindByURL происк в хранилище информации по ссылке
+//
+//	URL - оригнальная ссылка
 func (repo *ShortLinkMemoryRepository) FindByURL(URL string) (*entity.ShortLinkEntity, error) {
 	for _, v := range repo.Items {
 		if v.URL == URL {
@@ -37,6 +45,9 @@ func (repo *ShortLinkMemoryRepository) FindByURL(URL string) (*entity.ShortLinkE
 	return nil, fmt.Errorf("not found by URL link: %s", URL)
 }
 
+// FindByUserID получение списка коротких ссылок из хранилища для конкретного пользователя
+//
+//	uuid - уникальный идентификатор пользователя
 func (repo *ShortLinkMemoryRepository) FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
 	var entityList []entity.ShortLinkEntity
 
@@ -49,6 +60,11 @@ func (repo *ShortLinkMemoryRepository) FindByUserID(uuid uuid.UUID) (*[]entity.S
 	return &entityList, nil
 }
 
+// Add добавление информации по короткой ссылке в хранилище
+//
+//	shortLink - краткая ссылка
+//	url - оригинальный URL
+//	userID - UUID пользователя
 func (repo *ShortLinkMemoryRepository) Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error) {
 	found, _ := repo.FindByURL(url)
 
@@ -61,6 +77,9 @@ func (repo *ShortLinkMemoryRepository) Add(shortLink string, url string, userID 
 	return repo.Items[shortLink], nil
 }
 
+// AddBatch добавление пачки коротких ссылок.
+//
+//	shortLinks - список добавляемых коротких ссылок.
 func (repo *ShortLinkMemoryRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
 	for _, v := range shortLinks {
 		_, err := repo.Add(v.ShortURL, v.OriginalURL, v.UserID)
@@ -73,6 +92,10 @@ func (repo *ShortLinkMemoryRepository) AddBatch(shortLinks batch.AddBatchDtoList
 	return &shortLinks, nil
 }
 
+// Delete удаление списка коротких ссылок.
+//
+//		shortLinkList - список удаляемых коротких ссылок.
+//	 userID - идентификатор пользователя
 func (repo *ShortLinkMemoryRepository) Delete(shortLinkList []string, userID string) error {
 	for _, shortLink := range shortLinkList {
 		repo.Items[shortLink].IsDeleted = true

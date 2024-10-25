@@ -14,16 +14,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// PostAPIShortLinkHandler обработчик создания коротких ссылок
 type PostAPIShortLinkHandler struct {
 	service *service.WriteShortLinkService
 	baseURL string
 	log     *zap.Logger
 }
 
+// NewPostAPIShortLinkHandler конструетор обработчика создания коротких ссылок
 func NewPostAPIShortLinkHandler(service *service.WriteShortLinkService, baseURL string, logger *zap.Logger) *PostAPIShortLinkHandler {
 	return &PostAPIShortLinkHandler{service: service, baseURL: baseURL, log: logger}
 }
 
+// Handle обработчика создания коротких ссылок
 func (handler *PostAPIShortLinkHandler) Handle(ctx *gin.Context) {
 	var req *api.Request
 	var buf bytes.Buffer

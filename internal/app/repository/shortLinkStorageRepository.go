@@ -16,10 +16,12 @@ import (
 	"encoding/json"
 )
 
+// ShortLinkStorageRepository файловое хранилище данных по коротким ссылкам
 type ShortLinkStorageRepository struct {
 	file *os.File
 }
 
+// NewShortLinkStorageRepository конструктор файлового хранилища данных по коротким ссылкам
 func NewShortLinkStorageRepository(path string) (*ShortLinkStorageRepository, error) {
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -29,6 +31,9 @@ func NewShortLinkStorageRepository(path string) (*ShortLinkStorageRepository, er
 	return &ShortLinkStorageRepository{file: file}, nil
 }
 
+// FindByShortLink происк в хранилище информации по короткой ссылке
+//
+//	shortLink - краткая ссылка
 func (repo *ShortLinkStorageRepository) FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error) {
 	var shortLinkEntity entity.ShortLinkEntity
 
@@ -56,6 +61,9 @@ func (repo *ShortLinkStorageRepository) FindByShortLink(shortLink string) (*enti
 	return nil, nil
 }
 
+// FindByURL происк в хранилище информации по ссылке
+//
+//	URL - оригнальная ссылка
 func (repo *ShortLinkStorageRepository) FindByURL(URL string) (*entity.ShortLinkEntity, error) {
 	var shortLinkEntity entity.ShortLinkEntity
 
@@ -83,6 +91,9 @@ func (repo *ShortLinkStorageRepository) FindByURL(URL string) (*entity.ShortLink
 	return nil, nil
 }
 
+// FindByUserID получение списка коротких ссылок из хранилища для конкретного пользователя
+//
+//	uuid - уникальный идентификатор пользователя
 func (repo *ShortLinkStorageRepository) FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
 	var entityList []entity.ShortLinkEntity
 	var shortLinkEntity entity.ShortLinkEntity
@@ -107,6 +118,11 @@ func (repo *ShortLinkStorageRepository) FindByUserID(uuid uuid.UUID) (*[]entity.
 	return &entityList, nil
 }
 
+// Add добавление информации по короткой ссылке в хранилище
+//
+//	shortLink - краткая ссылка
+//	url - оригинальный URL
+//	userID - UUID пользователя
 func (repo *ShortLinkStorageRepository) Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error) {
 	found, _ := repo.FindByURL(url)
 
@@ -131,6 +147,9 @@ func (repo *ShortLinkStorageRepository) Add(shortLink string, url string, userID
 	return newShortLinkEntity, nil
 }
 
+// AddBatch добавление пачки коротких ссылок.
+//
+//	shortLinks - список добавляемых коротких ссылок.
 func (repo *ShortLinkStorageRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
 	for _, v := range shortLinks {
 		_, err := repo.Add(v.ShortURL, v.OriginalURL, v.UserID)
@@ -143,6 +162,10 @@ func (repo *ShortLinkStorageRepository) AddBatch(shortLinks batch.AddBatchDtoLis
 	return &shortLinks, nil
 }
 
+// Delete удаление списка коротких ссылок.
+//
+//		shortLinkList - список удаляемых коротких ссылок.
+//	 userID - идентификатор пользователя
 func (repo *ShortLinkStorageRepository) Delete(shortLinkList []string, userID string) error {
 	return nil
 }

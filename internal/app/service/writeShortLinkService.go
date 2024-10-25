@@ -1,3 +1,4 @@
+// Package service пакет для управления данными по коротким ссылкам
 package service
 
 import (
@@ -13,16 +14,22 @@ import (
 	"go.uber.org/zap"
 )
 
+// WriteShortLinkService - сервис для записи коротких ссылок
 type WriteShortLinkService struct {
 	repository repository.IShortLinkRepository
 	generator  generator.IShortLinkGenerator
 	logger     *zap.Logger
 }
 
+// NewWriteShortLinkService - конструктор сервиса для записи коротких ссылок
 func NewWriteShortLinkService(repository repository.IShortLinkRepository, generator generator.IShortLinkGenerator, logger *zap.Logger) *WriteShortLinkService {
 	return &WriteShortLinkService{repository: repository, generator: generator, logger: logger}
 }
 
+// Add - добавление короткой ссылки
+// url - оригинальный УРЛ
+// userID - уникальный идентификатор пользователя
+// возвращает сущность созданной короткой ссылки
 func (service *WriteShortLinkService) Add(url string, userID string) (*entity.ShortLinkEntity, error) {
 	shortLink := service.generator.UniqGenerate()
 
@@ -43,6 +50,10 @@ func (service *WriteShortLinkService) Add(url string, userID string) (*entity.Sh
 	return shortLinkEntity, nil
 }
 
+// AddBatch - добавление пачки коротких ссылок
+// links - скисок коротких ссылок
+// userID - уникальный идентификатор пользователя
+// возвращает спискок коротких ссылок
 func (service *WriteShortLinkService) AddBatch(links *batch.Request, userID string) (*batch.AddBatchDtoList, error) {
 	var batchList batch.AddBatchDtoList
 
@@ -64,6 +75,10 @@ func (service *WriteShortLinkService) AddBatch(links *batch.Request, userID stri
 	return result, nil
 }
 
+// MarkAsRemove - пометить короткую ссылку как удаленную
+// shortLinkList - скисок коротких ссылок
+// userID - уникальный идентификатор пользователя
+// возвращает список помеченных коротких ссылок
 func (service *WriteShortLinkService) MarkAsRemove(shortLinkList []string, userID string) []string {
 	var chunk []string
 	var chunks [][]string
@@ -97,6 +112,9 @@ func (service *WriteShortLinkService) MarkAsRemove(shortLinkList []string, userI
 	return deletedLinks
 }
 
+// sendToPrepare - отправка чанков на обработку
+// chunks - скисок коротких ссылок
+// возвращает список помеченных коротких ссылок
 func (service *WriteShortLinkService) sendToPrepare(chunks [][]string) chan []string {
 	outCh := make(chan []string)
 	go func() {
@@ -109,6 +127,10 @@ func (service *WriteShortLinkService) sendToPrepare(chunks [][]string) chan []st
 	return outCh
 }
 
+// prepareRemoveShortLink - отправка чанков на обработку
+// inCh - масив чанков
+// userID - уникальный идентификатор пользователя
+// возвращает список помеченных коротких ссылок
 func (service *WriteShortLinkService) prepareRemoveShortLink(inCh chan []string, userID string) chan []string {
 	outCh := make(chan []string)
 

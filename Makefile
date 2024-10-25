@@ -1,6 +1,9 @@
 test:
 	go test internal/app/handler/*
 
+bench:
+	go test -bench internal/app/generator/* -benchmem
+
 serve:
 	go run cmd/shortener/main.go -a localhost:8081 -b http://localhost:8081 -d "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable"
 
@@ -15,6 +18,7 @@ prof-h:
 
 coverage:
 	go test -v -coverpkg=./... -coverprofile=profile.cov ./...
+
 gofmt:
 	gofmt -w cmd/*
 	gofmt -w internal/*
@@ -26,6 +30,9 @@ goimports:
 godoc-l:
 	sudo cp -r ./ /usr/local/go/src/sanbright/go_shortener
 
+godoc-rm:
+	sudo rm -rf /usr/local/go/src/sanbright
+
 godoc:
 	sudo cp -r ./ /usr/local/go/src/sanbright/go_shortener
-	godoc -http=:9009
+	godoc -http=:9009 --play

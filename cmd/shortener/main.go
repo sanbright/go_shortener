@@ -18,6 +18,7 @@ import (
 	"github.com/gin-contrib/pprof"
 )
 
+// Настройки по умолчанию
 const (
 	ShortLinkLen int    = 10
 	CryptoKey    string = "$$ecuRityKe453H@"
