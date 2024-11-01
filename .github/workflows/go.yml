@@ -16,9 +16,11 @@ jobs:
 
       - name: Run statictest
         run: |
-          go test -v -coverpkg=./... -coverprofile=profile.cov ./...
+          go test -v -coverpkg=./... -coverprofile=coverage.txt ./...
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          flags: ${{ matrix.os }},go-${{ matrix.go }}
+          exclude: ./cmd"
+        env:
+          CODECOV_TOKEN: 9fc546f0-cbf4-4c62-ad55-d761475210f1

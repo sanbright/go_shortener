@@ -71,6 +71,36 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
+			name:    "ConflictAppendShortLink",
+			method:  http.MethodPost,
+			request: "/api/shorten",
+			body:    "{\"url\":\"https://google.com/test\"}",
+			want: want{
+				statusCode: http.StatusConflict,
+				body:       "{\"result\":\"http://example.com/QYsTVwgznh\"}",
+			},
+		},
+		{
+			name:    "JSONUnexpectedEndShortLink",
+			method:  http.MethodPost,
+			request: "/api/shorten",
+			body:    "",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "unexpected end of JSON input",
+			},
+		},
+		{
+			name:    "InvalidJSONShortLink",
+			method:  http.MethodPost,
+			request: "/api/shorten",
+			body:    "{\"urasdl\"",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "unexpected end of JSON input",
+			},
+		},
+		{
 			name:    "InvalidUrl",
 			method:  http.MethodPost,
 			request: "/api/shorten",

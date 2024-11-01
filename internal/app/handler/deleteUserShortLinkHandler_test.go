@@ -72,6 +72,28 @@ func TestDeleteUserShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
+			name:    "FailRemoveUserShortLink",
+			method:  http.MethodDelete,
+			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYBg+invalid==",
+			request: "/api/user/urls",
+			body:    "",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "{\"Offset\":0}",
+			},
+		},
+		{
+			name:    "FailJSONRemoveUserShortLink",
+			method:  http.MethodDelete,
+			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYBg+invalid==2",
+			request: "/api/user/urls",
+			body:    "{{",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "{\"Offset\":2}",
+			},
+		},
+		{
 			name:    "UsageMethodNotAllowed",
 			method:  http.MethodPost,
 			request: "/api/user/urls",

@@ -72,6 +72,16 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 			},
 		},
 		{
+			name:    "ConflictAppendShortLink",
+			method:  http.MethodPost,
+			request: "/",
+			body:    "https://google.com/test",
+			want: want{
+				statusCode: http.StatusConflict,
+				body:       "http://example.com/QYsTVwgznh",
+			},
+		},
+		{
 			name:    "UndefinedURL",
 			method:  http.MethodPost,
 			request: "/testesttest",

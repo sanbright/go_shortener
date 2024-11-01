@@ -2,7 +2,7 @@
 
 Шаблон репозитория для трека «Сервис сокращения URL».
 
-[![codecov](https://codecov.io/gh/gin-contrib/gzip/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/gzip)
+[![codecov](https://codecov.io/github/sanbright/go_shortener/graph/badge.svg?token=4XFBM1CAQ6)](https://codecov.io/github/sanbright/go_shortener)
 
 ## Начало работы
 
