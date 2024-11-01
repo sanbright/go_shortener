@@ -2,6 +2,8 @@
 
 Шаблон репозитория для трека «Сервис сокращения URL».
 
+[![codecov](https://codecov.io/gh/gin-contrib/gzip/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/gzip)
+
 ## Начало работы
 
 1. Склонируйте репозиторий в любую подходящую директорию на вашем компьютере.

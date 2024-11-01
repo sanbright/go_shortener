@@ -24,7 +24,7 @@ func ExampleCryptGenerator_EncodeValue() {
 	encoded, err := crypt.EncodeValue("This is test")
 
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error encoding value: %v", err)
 	}
 
 	//
