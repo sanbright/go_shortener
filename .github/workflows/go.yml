@@ -20,7 +20,5 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        with:
-          exclude: ./cmd"
         env:
           CODECOV_TOKEN: 9fc546f0-cbf4-4c62-ad55-d761475210f1

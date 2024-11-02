@@ -1,3 +1,4 @@
+// Package config пакет конфигурации
 package config
 
 import (

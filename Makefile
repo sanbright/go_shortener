@@ -1,5 +1,6 @@
 test:
 	go test internal/app/handler/*
+	go test internal/config/*
 
 bench:
 	go test -bench internal/app/generator/* -benchmem
@@ -22,6 +23,9 @@ coverage:
 gofmt:
 	gofmt -w cmd/*
 	gofmt -w internal/*
+
+static:
+	staticcheck ./...
 
 goimports:
 	goimports -local "github.com/sanbright/go_shortener" -w cmd/*
