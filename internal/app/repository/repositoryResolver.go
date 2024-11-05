@@ -1,12 +1,14 @@
+// Package repository пакет для работы с хранилищем данных
 package repository
 
 import (
-	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/config"
+
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 const schema = `
@@ -23,7 +25,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS short_link__uniq ON short_link (short_link);
 CREATE UNIQUE INDEX IF NOT EXISTS url__uniq ON short_link (url);
 `
 
-type ShortLinkRepositoryInterface interface {
+// IShortLinkRepository интерфейс для работы с хранилищем данных по коротким ссылкам
+type IShortLinkRepository interface {
 	Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error)
 	AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error)
 	FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error)
@@ -32,17 +35,25 @@ type ShortLinkRepositoryInterface interface {
 	Delete(shortLinkList []string, userID string) error
 }
 
+// Resolver резолвер, определяет какое хранилище необходимо использовать и возвращает его для использования
 type Resolver struct {
+	// Config объект конфигурации проекта
 	Config *config.Config
-	Log    *zap.Logger
-	DB     *sqlx.DB
+	// Log логгер
+	Log *zap.Logger
+	// DB подключение к СУБД
+	DB *sqlx.DB
 }
 
+// NewRepositoryResolver Конструктор резолвера хранилища
+// config - объект конфигурации проекта
+// log логгер
 func NewRepositoryResolver(config *config.Config, log *zap.Logger) *Resolver {
 	return &Resolver{Config: config, Log: log}
 }
 
-func (r *Resolver) Execute() (ShortLinkRepositoryInterface, error) {
+// Execute - резолв хранилища
+func (r *Resolver) Execute() (IShortLinkRepository, error) {
 	if len(r.Config.DatabaseDSN) > 0 {
 		db, _ := r.InitDB()
 
@@ -75,6 +86,7 @@ func (r *Resolver) Execute() (ShortLinkRepositoryInterface, error) {
 	return NewShortLinkRepository(), nil
 }
 
+// InitDB - установка соединения с СУБД
 func (r *Resolver) InitDB() (*sqlx.DB, error) {
 	if r.DB != nil {
 		return r.DB, nil

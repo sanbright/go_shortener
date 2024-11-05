@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"go.uber.org/zap"
 	"io"
 	"strings"
 	"testing"
+
+	"go.uber.org/zap"
 
 	"net/http"
 	"net/http/httptest"

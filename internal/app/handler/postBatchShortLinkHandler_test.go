@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +10,9 @@ import (
 	"sanbright/go_shortener/internal/app/service"
 	"strings"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func TestPostBathShortLinkHandler_Handle(t *testing.T) {

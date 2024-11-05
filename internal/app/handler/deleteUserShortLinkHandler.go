@@ -2,23 +2,27 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"sanbright/go_shortener/internal/app/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
+// DeleteUserShortLinkHandler обработчик удаления запроса на удаление коротких ссылок
 type DeleteUserShortLinkHandler struct {
 	service *service.WriteShortLinkService
 	logger  *zap.Logger
 	baseURL string
 }
 
+// NewDeleteUserShortLinkHandler конструктор обработчика удаления коротких ссылок
 func NewDeleteUserShortLinkHandler(service *service.WriteShortLinkService, baseURL string, logger *zap.Logger) *DeleteUserShortLinkHandler {
 	return &DeleteUserShortLinkHandler{service: service, logger: logger, baseURL: baseURL}
 }
 
+// Handle обработчик удаления запроса на удаление коротких ссылок
 func (handler *DeleteUserShortLinkHandler) Handle(ctx *gin.Context) {
 	userID, ok := ctx.Get("UserID")
 	if !ok {

@@ -2,6 +2,8 @@
 
 Шаблон репозитория для трека «Сервис сокращения URL».
 
+[![codecov](https://codecov.io/github/sanbright/go_shortener/graph/badge.svg?token=4XFBM1CAQ6)](https://codecov.io/github/sanbright/go_shortener)
+
 ## Начало работы
 
 1. Склонируйте репозиторий в любую подходящую директорию на вашем компьютере.

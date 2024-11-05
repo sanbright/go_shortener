@@ -1,23 +1,31 @@
+// Package service пакет для управления данными по коротким ссылкам
 package service
 
 import (
-	"github.com/google/uuid"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/app/repository"
+
+	"github.com/google/uuid"
 )
 
+// ReadShortLinkService - сервис для чтения данных по коротким ссылокам
 type ReadShortLinkService struct {
-	repository repository.ShortLinkRepositoryInterface
+	repository repository.IShortLinkRepository
 }
 
-func NewReadShortLinkService(repository repository.ShortLinkRepositoryInterface) *ReadShortLinkService {
+// NewReadShortLinkService - конеструктор сервиса для чтения данных по коротким ссылокам
+func NewReadShortLinkService(repository repository.IShortLinkRepository) *ReadShortLinkService {
 	return &ReadShortLinkService{repository: repository}
 }
 
+// GetByShortLink - получение данных по краткой сслыке по короткой ссылке
+// shortLink - короткая ссылка
 func (service *ReadShortLinkService) GetByShortLink(shortLink string) (*entity.ShortLinkEntity, error) {
 	return service.repository.FindByShortLink(shortLink)
 }
 
+// GetByUserID - получение списка кратких ссылк пользователя
+// userID - уникальный идентификатор пользователя
 func (service *ReadShortLinkService) GetByUserID(userID string) (*[]entity.ShortLinkEntity, error) {
 	return service.repository.FindByUserID(uuid.MustParse(userID))
 }

@@ -1,0 +1,26 @@
+name: coverage
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    container: golang:1.22
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run statictest
+        run: |
+          go test -v -coverpkg=./... -coverprofile=coverage.txt ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          exclude: ./cmd"
+        env:
+          CODECOV_TOKEN: 9fc546f0-cbf4-4c62-ad55-d761475210f1

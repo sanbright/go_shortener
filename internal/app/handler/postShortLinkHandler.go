@@ -13,15 +13,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// PostShortLinkHandler обработчик создания которкой ссылки
 type PostShortLinkHandler struct {
 	service *service.WriteShortLinkService
 	baseURL string
 }
 
+// NewPostShortLinkHandler конструктор обработчик создания которкой ссылки
 func NewPostShortLinkHandler(service *service.WriteShortLinkService, baseURL string) *PostShortLinkHandler {
 	return &PostShortLinkHandler{service: service, baseURL: baseURL}
 }
 
+// Handle обработка запроса на создание короткой ссылки
 func (handler *PostShortLinkHandler) Handle(ctx *gin.Context) {
 	uri := strings.TrimLeft(ctx.Request.RequestURI, "/")
 	if len(uri) > 0 {

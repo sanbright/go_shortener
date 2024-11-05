@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gin-contrib/gzip"
 	"log"
 	"os"
 	"sanbright/go_shortener/internal/app/generator"
@@ -11,10 +10,15 @@ import (
 	"sanbright/go_shortener/internal/app/service"
 	"sanbright/go_shortener/internal/config"
 
+	"github.com/gin-contrib/gzip"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"github.com/gin-contrib/pprof"
 )
 
+// Настройки по умолчанию
 const (
 	ShortLinkLen int    = 10
 	CryptoKey    string = "$$ecuRityKe453H@"
@@ -24,10 +28,12 @@ func setupRouter(log *zap.Logger) *gin.Engine {
 	r := gin.New()
 	r.HandleMethodNotAllowed = true
 	r.Use(
-		gzip.Gzip(gzip.DefaultCompression, gzip.WithDecompressFn(gzip.DefaultDecompressHandle)),
+		gzip.Gzip(gzip.BestSpeed, gzip.WithDecompressFn(gzip.DefaultDecompressHandle)),
 		middleware.Logger(log),
 		gin.Recovery(),
 	)
+
+	pprof.Register(r)
 
 	return r
 }
@@ -56,7 +62,7 @@ func main() {
 	writeShortLinkService := service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger)
 	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
-	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
+	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
 	batchAPIHandler := handler.NewPostBatchShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
 	getPing := handler.NewGetPingHandler(configuration)
 	getUserShortLinkHandler := handler.NewGetUserShortLinkHandler(readShortLinkService, configuration.BaseURL.URL, logger)

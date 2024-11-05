@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +10,8 @@ import (
 	"sanbright/go_shortener/internal/app/service"
 	"strings"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestDeleteUserShortLinkHandler_Handle(t *testing.T) {
@@ -68,6 +69,28 @@ func TestDeleteUserShortLinkHandler_Handle(t *testing.T) {
 			want: want{
 				statusCode: http.StatusAccepted,
 				body:       "",
+			},
+		},
+		{
+			name:    "FailRemoveUserShortLink",
+			method:  http.MethodDelete,
+			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYBg+invalid==",
+			request: "/api/user/urls",
+			body:    "",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "{\"Offset\":0}",
+			},
+		},
+		{
+			name:    "FailJSONRemoveUserShortLink",
+			method:  http.MethodDelete,
+			auth:    "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYBg+invalid==2",
+			request: "/api/user/urls",
+			body:    "{{",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "{\"Offset\":2}",
 			},
 		},
 		{

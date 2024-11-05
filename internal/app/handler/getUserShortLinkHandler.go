@@ -2,23 +2,27 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"net/http"
 	"sanbright/go_shortener/internal/app/dto/user"
 	"sanbright/go_shortener/internal/app/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
+// GetUserShortLinkHandler обработчик получение списка которких ссылкок созданных пользователем
 type GetUserShortLinkHandler struct {
 	service *service.ReadShortLinkService
 	logger  *zap.Logger
 	baseURL string
 }
 
+// NewGetUserShortLinkHandler конструктор обработчика получения пользовательских ссылок
 func NewGetUserShortLinkHandler(service *service.ReadShortLinkService, baseURL string, logger *zap.Logger) *GetUserShortLinkHandler {
 	return &GetUserShortLinkHandler{service: service, logger: logger, baseURL: baseURL}
 }
 
+// Handle обработка запроса на получение списка ссылок для пользователя
 func (handler *GetUserShortLinkHandler) Handle(ctx *gin.Context) {
 	userID, ok := ctx.Get("UserID")
 	if !ok {

@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"go.uber.org/zap"
 	"io"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/middleware"
 	"strings"
 	"testing"
+
+	"go.uber.org/zap"
 
 	"net/http"
 	"net/http/httptest"
@@ -23,7 +24,7 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 	shortLinkGenerator := NewMockShortLinkGenerator()
 	logger := setupLogger()
 
-	handler := NewPostAPIShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger), "http://example.com")
+	handler := NewPostAPIShortLinkHandler(service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, logger), "http://example.com", logger)
 
 	cry := generator.NewCryptGenerator("$$ecuRityKe453H@")
 
@@ -67,6 +68,36 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 			want: want{
 				statusCode: http.StatusCreated,
 				body:       "{\"result\":\"http://example.com/QYsTVwgznh\"}",
+			},
+		},
+		{
+			name:    "ConflictAppendShortLink",
+			method:  http.MethodPost,
+			request: "/api/shorten",
+			body:    "{\"url\":\"https://google.com/test\"}",
+			want: want{
+				statusCode: http.StatusConflict,
+				body:       "{\"result\":\"http://example.com/QYsTVwgznh\"}",
+			},
+		},
+		{
+			name:    "JSONUnexpectedEndShortLink",
+			method:  http.MethodPost,
+			request: "/api/shorten",
+			body:    "",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "unexpected end of JSON input",
+			},
+		},
+		{
+			name:    "InvalidJSONShortLink",
+			method:  http.MethodPost,
+			request: "/api/shorten",
+			body:    "{\"urasdl\"",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "unexpected end of JSON input",
 			},
 		},
 		{

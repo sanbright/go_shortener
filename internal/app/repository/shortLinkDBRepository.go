@@ -4,23 +4,31 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/jackc/pgerrcode"
-	"github.com/jmoiron/sqlx"
 	"sanbright/go_shortener/internal/app/dto/batch"
 	"sanbright/go_shortener/internal/app/entity"
 	repErr "sanbright/go_shortener/internal/app/repository/error"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
+	"github.com/jmoiron/sqlx"
 )
 
+// ShortLinkDBRepository репозиторий для хранения данных в СУБД
 type ShortLinkDBRepository struct {
 	db *sqlx.DB
 }
 
+// NewShortLinkDBRepository конструктор
 func NewShortLinkDBRepository(db *sqlx.DB) *ShortLinkDBRepository {
 	return &ShortLinkDBRepository{db: db}
 }
 
+// Add добавление информации по короткой ссылке в хранилище
+//
+//	shortLink - краткая ссылка
+//	url - оригинальный URL
+//	userID - UUID пользователя
 func (repo *ShortLinkDBRepository) Add(shortLink string, url string, userID string) (*entity.ShortLinkEntity, error) {
 	var newShortLinkEntity = entity.NewShortLinkEntity(shortLink, url, userID)
 
@@ -47,6 +55,9 @@ func (repo *ShortLinkDBRepository) Add(shortLink string, url string, userID stri
 	return newShortLinkEntity, nil
 }
 
+// FindByShortLink происк в хранилище информации по короткой ссылке
+//
+//	shortLink - краткая ссылка
 func (repo *ShortLinkDBRepository) FindByShortLink(shortLink string) (*entity.ShortLinkEntity, error) {
 	var shortLinkEntity entity.ShortLinkEntity
 
@@ -69,6 +80,9 @@ func (repo *ShortLinkDBRepository) FindByShortLink(shortLink string) (*entity.Sh
 	return &shortLinkEntity, err
 }
 
+// FindByURL происк в хранилище информации по ссылке
+//
+//	URL - оригнальная ссылка
 func (repo *ShortLinkDBRepository) FindByURL(URL string) (*entity.ShortLinkEntity, error) {
 	var shortLinkEntity entity.ShortLinkEntity
 
@@ -92,6 +106,9 @@ func (repo *ShortLinkDBRepository) FindByURL(URL string) (*entity.ShortLinkEntit
 	return &shortLinkEntity, err
 }
 
+// FindByUserID получение списка коротких ссылок из хранилища для конкретного пользователя
+//
+//	uuid - уникальный идентификатор пользователя
 func (repo *ShortLinkDBRepository) FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error) {
 	var shortLinkEntities []entity.ShortLinkEntity
 
@@ -114,6 +131,9 @@ func (repo *ShortLinkDBRepository) FindByUserID(uuid uuid.UUID) (*[]entity.Short
 	return &shortLinkEntities, err
 }
 
+// AddBatch добавление пачки коротких ссылок.
+//
+//	shortLinks - список добавляемых коротких ссылок.
 func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*batch.AddBatchDtoList, error) {
 	tx, err := repo.db.Begin()
 
@@ -148,6 +168,10 @@ func (repo *ShortLinkDBRepository) AddBatch(shortLinks batch.AddBatchDtoList) (*
 	return &shortLinks, nil
 }
 
+// Delete удаление списка коротких ссылок.
+//
+//		shortLinkList - список удаляемых коротких ссылок.
+//	 userID - идентификатор пользователя
 func (repo *ShortLinkDBRepository) Delete(shortLinkList []string, userID string) error {
 	var inArray []string
 	var params []interface{}

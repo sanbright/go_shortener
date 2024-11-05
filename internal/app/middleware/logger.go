@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"time"
 )
 
+// Logger middleware производит логгирование запроса и ответа
 func Logger(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()

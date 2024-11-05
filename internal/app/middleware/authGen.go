@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"sanbright/go_shortener/internal/app/generator"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"sanbright/go_shortener/internal/app/generator"
 )
 
+// AuthGen middleware проверяет по Cookie авторизован ли пользователь, если нет то авторизует его
 func AuthGen(crypt *generator.CryptGenerator, domain string, logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth, err := c.Cookie("Auth")
