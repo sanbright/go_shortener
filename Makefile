@@ -9,7 +9,7 @@ serve:
 	go run cmd/shortener/main.go -a localhost:8081 -b http://localhost:8081 -d "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable"
 
 build:
-	go build -o shortener *.go
+	go build  -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d) -X main.buildCommit=$(git rev-parse HEAD)" -o shortener main.go
 
 prof-p:
 	 go tool pprof --http=:8082 -seconds=50 http://localhost:8081/debug/pprof/profile

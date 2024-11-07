@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sanbright/go_shortener/internal/app/generator"
@@ -18,6 +19,15 @@ import (
 	"github.com/gin-contrib/pprof"
 )
 
+// BuildVersion = определяет версию приложения
+// BuildDate = определяет дату сборки
+// BuildCommit = определяет коммит сборки
+var (
+	BuildVersion = "N/A"
+	BuildDate    = "N/A"
+	BuildCommit  = "N/A"
+)
+
 // Настройки по умолчанию
 const (
 	ShortLinkLen int    = 10
@@ -25,6 +35,10 @@ const (
 )
 
 func setupRouter(log *zap.Logger) *gin.Engine {
+	fmt.Printf("Build version: %s\n", BuildVersion)
+	fmt.Printf("Build date: %s\n", BuildDate)
+	fmt.Printf("Build commit: %s\n", BuildCommit)
+
 	r := gin.New()
 	r.HandleMethodNotAllowed = true
 	r.Use(
