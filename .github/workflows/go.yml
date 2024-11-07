@@ -16,6 +16,7 @@ jobs:
 
       - name: Run statictest
         run: |
+          go get -u github.com/mgechev/revive |
           go test -v -coverpkg=./... -coverprofile=coverage.txt ./...
 
       - name: Upload coverage to Codecov
