@@ -2,6 +2,7 @@ package handler
 
 import (
 	"io"
+	"sanbright/go_shortener/internal/app/middleware"
 	"strings"
 	"testing"
 
@@ -58,6 +59,8 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 	}
 
 	handler := NewGetShortLinkHandler(service.NewReadShortLinkService(shortLinkRepository))
+	logger := setupLogger()
+	loggerMiddleware := middleware.Logger(logger)
 
 	type want struct {
 		statusCode int
@@ -149,7 +152,8 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			context.Request = request
 
 			r := setupRouter()
-			r.GET(`/:id`, handler.Handle)
+
+			r.GET(`/:id`, loggerMiddleware, handler.Handle)
 			r.ServeHTTP(response, request)
 
 			if code := tt.want.statusCode; code != response.Code {

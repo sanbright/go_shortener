@@ -52,25 +52,6 @@ func TestGetPingHandler_Handle(t *testing.T) {
 
 			r := setupRouter()
 			r.GET(`/ping`, handler.Handle)
-			//r.ServeHTTP(response, request)
-
-			//if code := tt.want.statusCode; code != response.Code {
-			//	t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, response.Code, code)
-			//}
-
-			//body, err := io.ReadAll(response.Body)
-
-			//if err != nil {
-			//	t.Errorf("%v: Error = '%v'", tt.name, err.Error())
-			//}
-
-			//if tbody := tt.want.body; tbody != string(body) {
-			//	t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tbody, string(body))
-			//}
-			//
-			//if location := tt.want.location; location != response.Header().Get("Location") {
-			//	t.Errorf("%v: Content = '%v', want = '%v'", tt.name, location, response.Header().Get("Location"))
-			//}
 		})
 	}
 }
