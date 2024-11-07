@@ -1,10 +1,19 @@
 package config
 
 import (
+	"flag"
+	"log"
+	"os"
 	"testing"
 )
 
 func TestNewConfig(t *testing.T) {
+
+	basePath, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+	}
+
 	type want struct {
 		databaseDSN       string
 		storagePath       string
@@ -35,10 +44,26 @@ func TestNewConfig(t *testing.T) {
 				baseURL:           "http://example.ru",
 			},
 		},
+		{
+			name:          "Default_configuration",
+			serverAddress: "",
+			baseURL:       "",
+			storagePath:   "",
+			databaseDSN:   "",
+			want: want{
+				databaseDSN:       "",
+				storagePath:       basePath + "/test.db",
+				serverAddressHost: "localhost",
+				serverAddressPort: "8080",
+				baseURL:           "http://localhost:8080",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			flag.CommandLine = flag.NewFlagSet("-a localhost:8081 -f test.db", flag.ContinueOnError)
+
 			config, err := NewConfig(tt.serverAddress, tt.baseURL, tt.storagePath, tt.databaseDSN)
 
 			if err != nil {
