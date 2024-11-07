@@ -46,6 +46,17 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
 	}
 
+	_, err = shortLinkRepository.Add("qwetyr123i1", "https:\\\\google1.com", "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
+	if err != nil {
+		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
+	}
+
+	del := []string{"qwetyr123i1"}
+	err = shortLinkRepository.Delete(del, "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
+	if err != nil {
+		t.Errorf("hortLinkFixture: Error = '%v'", err.Error())
+	}
+
 	handler := NewGetShortLinkHandler(service.NewReadShortLinkService(shortLinkRepository))
 
 	type want struct {
@@ -80,6 +91,16 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 				statusCode: http.StatusTemporaryRedirect,
 				body:       "<a href=\"https:\\\\google.com\">Temporary Redirect</a>.\n\n",
 				location:   "https:\\\\google.com",
+			},
+		},
+		{
+			name:    "NotFoundGettingShortLink",
+			method:  http.MethodGet,
+			request: "/qwetyr123i1",
+			want: want{
+				statusCode: http.StatusGone,
+				body:       "Not found link",
+				location:   "",
 			},
 		},
 		{
@@ -142,7 +163,7 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 			}
 
 			if tbody := tt.want.body; tbody != string(body) {
-				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tbody, string(body))
+				t.Errorf("%v: Content_body = '%v', want = '%v'", tt.name, tbody, string(body))
 			}
 
 			if location := tt.want.location; location != response.Header().Get("Location") {
