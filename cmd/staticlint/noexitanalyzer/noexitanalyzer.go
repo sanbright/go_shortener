@@ -24,7 +24,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
 								switch pkgIdent, ok := sel.X.(*ast.Ident); {
 								case pkgIdent.Name == "os" && ok && sel.Sel.Name == "Exit":
-									pass.Reportf(call.Pos(), "os.Exit called within main function")
+									pass.Reportf(call.Pos(), "os.Exit called within main function2d")
 								}
 							}
 						}
