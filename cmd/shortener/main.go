@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/handler"
@@ -58,16 +59,28 @@ func setupLogger() *zap.Logger {
 }
 
 func main() {
-	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"), os.Getenv("DATABASE_DSN"))
+	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"), os.Getenv("DATABASE_DSN"), os.Getenv("ENABLE_HTTPS") == "true")
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}
 
 	r := initServer(configuration)
-	err = r.Run(configuration.DomainAndPort.String())
 
-	if err != nil {
-		log.Fatalf("Fatal error: %s", err.Error())
+	srv := &http.Server{
+		Addr:    configuration.DomainAndPort.String(),
+		Handler: r,
+	}
+	var srvErr error
+	if configuration.HTTPS {
+		fmt.Printf("SSL mode\n")
+		srvErr = srv.ListenAndServeTLS("./key.crt", "./key.pem")
+	} else {
+		fmt.Printf("not SSL mode\n")
+		srvErr = srv.ListenAndServe()
+	}
+
+	if srvErr != nil {
+		log.Fatalf("Fatal error: %s", srvErr.Error())
 	}
 }
 

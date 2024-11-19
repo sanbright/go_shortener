@@ -28,6 +28,8 @@ type Config struct {
 	StoragePath string
 	// DatabaseDSN - DSN для использования подключения к СУБД
 	DatabaseDSN string
+	// HTTPS - Использование https
+	HTTPS bool
 }
 
 // DomainAndPort - Домен и порт
@@ -44,7 +46,7 @@ type ExternalURL struct {
 }
 
 // NewConfig Конструктор инициализация конфиругации
-func NewConfig(serverAddress string, baseURL string, storagePath string, databaseDSN string) (*Config, error) {
+func NewConfig(serverAddress string, baseURL string, storagePath string, databaseDSN string, HTTPS bool) (*Config, error) {
 
 	if len(serverAddress) == 0 {
 		serverAddress = DefaultServerAddress
@@ -70,6 +72,7 @@ func NewConfig(serverAddress string, baseURL string, storagePath string, databas
 	var externalURL ExternalURL
 	var storagePathConf string
 	var databaseDSNConf string
+	var HTTPSConf bool
 
 	err := externalURL.Set(baseURL)
 	if err != nil {
@@ -81,17 +84,23 @@ func NewConfig(serverAddress string, baseURL string, storagePath string, databas
 		return nil, err
 	}
 
+	fmt.Printf("HTTPSConf value \n%s", HTTPSConf)
+
 	flag.Var(&domainAndPort, "a", "listen host and port")
 	flag.Var(&externalURL, "b", "domain in short link")
 	flag.StringVar(&storagePathConf, "f", storagePath, "file storage path")
 	flag.StringVar(&databaseDSNConf, "d", databaseDSN, "database storage")
+	flag.BoolVar(&HTTPSConf, "s", HTTPS, "HTTPS Enable")
 	flag.Parse()
+
+	fmt.Printf("HTTPSConf post value \n%s", HTTPSConf)
 
 	return &Config{
 		DomainAndPort: domainAndPort,
 		BaseURL:       externalURL,
 		StoragePath:   storagePathConf,
 		DatabaseDSN:   databaseDSNConf,
+		HTTPS:         HTTPSConf,
 	}, nil
 }
 
