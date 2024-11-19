@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sanbright/go_shortener/internal/app/generator"
@@ -16,6 +17,15 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gin-contrib/pprof"
+)
+
+// BuildVersion = определяет версию приложения
+// BuildDate = определяет дату сборки
+// BuildCommit = определяет коммит сборки
+var (
+	BuildVersion = "N/A"
+	BuildDate    = "N/A"
+	BuildCommit  = "N/A"
 )
 
 // Настройки по умолчанию
@@ -48,12 +58,25 @@ func setupLogger() *zap.Logger {
 }
 
 func main() {
-	logger := setupLogger()
-
 	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"), os.Getenv("DATABASE_DSN"))
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}
+
+	r := initServer(configuration)
+	err = r.Run(configuration.DomainAndPort.String())
+
+	if err != nil {
+		log.Fatalf("Fatal error: %s", err.Error())
+	}
+}
+
+func initServer(configuration *config.Config) *gin.Engine {
+	fmt.Printf("Build version: %s\n", BuildVersion)
+	fmt.Printf("Build date: %s\n", BuildDate)
+	fmt.Printf("Build commit: %s\n", BuildCommit)
+
+	logger := setupLogger()
 
 	shortLinkGenerator := generator.NewShortLinkGenerator(ShortLinkLen)
 	shortLinkRepository, _ := repository.NewRepositoryResolver(configuration, logger).Execute()
@@ -80,9 +103,6 @@ func main() {
 	r.GET(`/api/user/urls`, authMiddleware, getUserShortLinkHandler.Handle)
 	r.DELETE(`/api/user/urls`, authMiddleware, deleteUserShortLinkHandler.Handle)
 	r.GET(`/ping`, getPing.Handle)
-	err = r.Run(configuration.DomainAndPort.String())
 
-	if err != nil {
-		log.Fatalf("Fatal error: %s", err.Error())
-	}
+	return r
 }

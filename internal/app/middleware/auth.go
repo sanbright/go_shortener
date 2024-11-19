@@ -1,3 +1,4 @@
+// Package middleware пакет для работы предобработчиками
 package middleware
 
 import (

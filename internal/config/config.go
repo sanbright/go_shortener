@@ -1,3 +1,4 @@
+// Package config пакет конфигурации
 package config
 
 import (
@@ -13,7 +14,7 @@ import (
 const (
 	DefaultServerAddress string = "localhost:8080"
 	DefaultBaseURL       string = "http://localhost:8080"
-	DefaultStoragePath   string = "/base.bd"
+	DefaultStoragePath   string = "/test.db"
 	DefaultDatabaseDSN   string = ""
 )
 
