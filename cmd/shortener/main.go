@@ -59,7 +59,15 @@ func setupLogger() *zap.Logger {
 }
 
 func main() {
-	configuration, err := config.NewConfig(os.Getenv("SERVER_ADDRESS"), os.Getenv("BASE_URL"), os.Getenv("FILE_STORAGE_PATH"), os.Getenv("DATABASE_DSN"), os.Getenv("ENABLE_HTTPS") == "true")
+	configuration, err := config.NewConfig(
+		os.Getenv("SERVER_ADDRESS"),
+		os.Getenv("BASE_URL"),
+		os.Getenv("FILE_STORAGE_PATH"),
+		os.Getenv("DATABASE_DSN"),
+		os.Getenv("ENABLE_HTTPS") == "true",
+		os.Getenv("CONFIG"),
+	)
+
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}

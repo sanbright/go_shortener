@@ -7,7 +7,7 @@ import (
 )
 
 func Test_initServer(t *testing.T) {
-	configuration, err := config.NewConfig("localhost:80", "localhost", "", "", false)
+	configuration, err := config.NewConfig("localhost:80", "localhost", "", "", false, "")
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}
