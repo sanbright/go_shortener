@@ -64,7 +64,7 @@ func TestNewConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			flag.CommandLine = flag.NewFlagSet("-a localhost:8081 -f test.db", flag.ContinueOnError)
 
-			config, err := NewConfig(tt.serverAddress, tt.baseURL, tt.storagePath, tt.databaseDSN)
+			config, err := NewConfig(tt.serverAddress, tt.baseURL, tt.storagePath, tt.databaseDSN, false)
 
 			if err != nil {
 				t.Errorf("%v: ERROR '%v'", tt.name, err.Error())

@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetPingHandler_Handle(t *testing.T) {
-	configuration, _ := config.NewConfig("localhost:8080", "", "", "")
+	configuration, _ := config.NewConfig("localhost:8080", "", "", "", false)
 	handler := NewGetPingHandler(configuration)
 
 	type want struct {
