@@ -84,16 +84,12 @@ func NewConfig(serverAddress string, baseURL string, storagePath string, databas
 		return nil, err
 	}
 
-	fmt.Printf("HTTPSConf value \n%s", HTTPSConf)
-
 	flag.Var(&domainAndPort, "a", "listen host and port")
 	flag.Var(&externalURL, "b", "domain in short link")
 	flag.StringVar(&storagePathConf, "f", storagePath, "file storage path")
 	flag.StringVar(&databaseDSNConf, "d", databaseDSN, "database storage")
 	flag.BoolVar(&HTTPSConf, "s", HTTPS, "HTTPS Enable")
 	flag.Parse()
-
-	fmt.Printf("HTTPSConf post value \n%s", HTTPSConf)
 
 	return &Config{
 		DomainAndPort: domainAndPort,
