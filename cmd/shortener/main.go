@@ -1,16 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/handler"
 	"sanbright/go_shortener/internal/app/middleware"
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 	"sanbright/go_shortener/internal/config"
+	"syscall"
 
 	"github.com/gin-contrib/gzip"
 
@@ -78,18 +81,35 @@ func main() {
 		Addr:    configuration.DomainAndPort.String(),
 		Handler: r,
 	}
-	var srvErr error
-	if configuration.HTTPS {
-		fmt.Printf("SSL mode\n")
-		srvErr = srv.ListenAndServeTLS("./key.crt", "./key.pem")
-	} else {
-		fmt.Printf("not SSL mode\n")
-		srvErr = srv.ListenAndServe()
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		var srvErr error
+		if configuration.HTTPS {
+			fmt.Printf("SSL mode\n")
+			srvErr = srv.ListenAndServeTLS("./key.crt", "./key.pem")
+		} else {
+			fmt.Printf("not SSL mode\n")
+			srvErr = srv.ListenAndServe()
+		}
+
+		if srvErr != nil {
+			log.Printf("Fatal error: %s", srvErr.Error())
+		}
+
+		os.Exit(0)
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	<-stop
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Failed to gracefully shutdown server: %s", err.Error())
 	}
 
-	if srvErr != nil {
-		log.Fatalf("Fatal error: %s", srvErr.Error())
-	}
+	cancel()
 }
 
 func initServer(configuration *config.Config) *gin.Engine {
