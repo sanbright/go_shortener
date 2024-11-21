@@ -2,11 +2,14 @@
 package config
 
 import (
+	"cmp"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -21,13 +24,15 @@ const (
 // Config структура конфигурации
 type Config struct {
 	// DomainAndPort - домен и порт для запуска web сервера
-	DomainAndPort DomainAndPort
+	DomainAndPort DomainAndPort `json:"server_address"`
 	// BaseURL - Базовый URL необходим для формирования коротких ссылок
-	BaseURL ExternalURL
+	BaseURL ExternalURL `json:"base_url"`
 	// StoragePath - путь до файла, кторый используется как файловое хранилище
-	StoragePath string
+	StoragePath string `json:"file_storage_path"`
 	// DatabaseDSN - DSN для использования подключения к СУБД
-	DatabaseDSN string
+	DatabaseDSN string `json:"database_dsn"`
+	// HTTPS - Использование https
+	HTTPS bool `json:"enable_https"`
 }
 
 // DomainAndPort - Домен и порт
@@ -44,7 +49,7 @@ type ExternalURL struct {
 }
 
 // NewConfig Конструктор инициализация конфиругации
-func NewConfig(serverAddress string, baseURL string, storagePath string, databaseDSN string) (*Config, error) {
+func NewConfig(serverAddress string, baseURL string, storagePath string, databaseDSN string, HTTPS bool, configFile string) (*Config, error) {
 
 	if len(serverAddress) == 0 {
 		serverAddress = DefaultServerAddress
@@ -70,29 +75,55 @@ func NewConfig(serverAddress string, baseURL string, storagePath string, databas
 	var externalURL ExternalURL
 	var storagePathConf string
 	var databaseDSNConf string
-
-	err := externalURL.Set(baseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	err = domainAndPort.Set(serverAddress)
-	if err != nil {
-		return nil, err
-	}
+	var HTTPSConf bool
 
 	flag.Var(&domainAndPort, "a", "listen host and port")
 	flag.Var(&externalURL, "b", "domain in short link")
-	flag.StringVar(&storagePathConf, "f", storagePath, "file storage path")
-	flag.StringVar(&databaseDSNConf, "d", databaseDSN, "database storage")
+	flag.StringVar(&storagePathConf, "f", "", "file storage path")
+	flag.StringVar(&databaseDSNConf, "d", "", "database storage")
+	flag.BoolVar(&HTTPSConf, "s", HTTPS, "HTTPS Enable")
 	flag.Parse()
 
+	fileConfig := readConfig(configFile)
+
+	fmt.Printf("Config: %+v\n", fileConfig)
+
+	var defC = &DomainAndPort{}
+	err := defC.Set(serverAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	var defEx = &ExternalURL{}
+	err = defEx.Set(baseURL)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
-		DomainAndPort: domainAndPort,
-		BaseURL:       externalURL,
-		StoragePath:   storagePathConf,
-		DatabaseDSN:   databaseDSNConf,
+		DomainAndPort: cmp.Or(domainAndPort, fileConfig.DomainAndPort, *defC),
+		BaseURL:       cmp.Or(externalURL, fileConfig.BaseURL, *defEx),
+		StoragePath:   cmp.Or(storagePathConf, fileConfig.StoragePath, storagePath),
+		DatabaseDSN:   cmp.Or(databaseDSNConf, fileConfig.DatabaseDSN, databaseDSN),
+		HTTPS:         cmp.Or(HTTPSConf, fileConfig.HTTPS, false),
 	}, nil
+}
+
+// readConfig - загрузка конфигурации из файла
+func readConfig(configFile string) *Config {
+	fileConfig := &Config{}
+	if configFile != "" {
+		rawContent, err := os.ReadFile(configFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err = json.Unmarshal(rawContent, fileConfig); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return fileConfig
 }
 
 // String - преобразование домена и порта в строку
@@ -116,6 +147,19 @@ func (dap *DomainAndPort) Set(value string) error {
 	return nil
 }
 
+// UnmarshalJSON - Unmarshal конфига
+func (dap *DomainAndPort) UnmarshalJSON(data []byte) error {
+
+	domainAndPort, err := strconv.Unquote(string(data))
+
+	if err != nil {
+		return err
+	}
+
+	dap.Set(domainAndPort)
+	return nil
+}
+
 // String - преобразование значения URL в строку
 func (eu *ExternalURL) String() string {
 	return eu.URL
@@ -124,6 +168,19 @@ func (eu *ExternalURL) String() string {
 // Set - установка значение URL
 func (eu *ExternalURL) Set(value string) error {
 	eu.URL = value
+
+	return nil
+}
+
+// UnmarshalJSON - Unmarshal конфига
+func (eu *ExternalURL) UnmarshalJSON(data []byte) error {
+	externalURL, err := strconv.Unquote(string(data))
+
+	if err != nil {
+		return err
+	}
+
+	eu.Set(externalURL)
 
 	return nil
 }
