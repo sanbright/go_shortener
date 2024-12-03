@@ -28,6 +28,7 @@ func TestNewConfig(t *testing.T) {
 		baseURL       string
 		storagePath   string
 		databaseDSN   string
+		fileConfig    string
 		want          want
 	}{
 		{
@@ -36,6 +37,7 @@ func TestNewConfig(t *testing.T) {
 			baseURL:       "http://example.ru",
 			storagePath:   "/test.db",
 			databaseDSN:   "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable",
+			fileConfig:    "",
 			want: want{
 				databaseDSN:       "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable",
 				storagePath:       "/test.db",
@@ -50,6 +52,7 @@ func TestNewConfig(t *testing.T) {
 			baseURL:       "",
 			storagePath:   "",
 			databaseDSN:   "",
+			fileConfig:    "",
 			want: want{
 				databaseDSN:       "",
 				storagePath:       basePath + "/test.db",
@@ -58,13 +61,28 @@ func TestNewConfig(t *testing.T) {
 				baseURL:           "http://localhost:8080",
 			},
 		},
+		{
+			name:          "File_configuration",
+			serverAddress: "",
+			baseURL:       "",
+			storagePath:   "",
+			databaseDSN:   "",
+			fileConfig:    basePath + "/../../config.json.dist",
+			want: want{
+				databaseDSN:       "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=enable",
+				storagePath:       basePath + "/test.db",
+				serverAddressHost: "localhost",
+				serverAddressPort: "8081",
+				baseURL:           "http://localhost:8081",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			flag.CommandLine = flag.NewFlagSet("-a localhost:8081 -f test.db", flag.ContinueOnError)
 
-			config, err := NewConfig(tt.serverAddress, tt.baseURL, tt.storagePath, tt.databaseDSN)
+			config, err := NewConfig(tt.serverAddress, tt.baseURL, tt.storagePath, tt.databaseDSN, false, tt.fileConfig)
 
 			if err != nil {
 				t.Errorf("%v: ERROR '%v'", tt.name, err.Error())

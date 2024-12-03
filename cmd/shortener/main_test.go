@@ -7,7 +7,7 @@ import (
 )
 
 func Test_initServer(t *testing.T) {
-	configuration, err := config.NewConfig("localhost:80", "localhost", "", "")
+	configuration, err := config.NewConfig("localhost:80", "localhost", "", "", false, "")
 	if err != nil {
 		log.Fatalf("Fatal configuration error: %s", err.Error())
 	}
@@ -23,7 +23,11 @@ func Test_initServer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = initServer(tt.config)
+			result := initServer(tt.config)
+
+			if result == nil {
+				log.Fatalf("Error init application")
+			}
 		})
 	}
 }
