@@ -69,6 +69,7 @@ func main() {
 		os.Getenv("DATABASE_DSN"),
 		os.Getenv("ENABLE_HTTPS") == "true",
 		os.Getenv("CONFIG"),
+		os.Getenv("TRUSTED_SUBNET"),
 	)
 
 	if err != nil {
@@ -131,10 +132,12 @@ func initServer(configuration *config.Config) *gin.Engine {
 	getPing := handler.NewGetPingHandler(configuration)
 	getUserShortLinkHandler := handler.NewGetUserShortLinkHandler(readShortLinkService, configuration.BaseURL.URL, logger)
 	deleteUserShortLinkHandler := handler.NewDeleteUserShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, logger)
+	getStats := handler.NewGetStatsHandler(readShortLinkService)
 
 	cry := generator.NewCryptGenerator(CryptoKey)
 	authMiddleware := middleware.Auth(cry, logger)
 	authGenMiddleware := middleware.AuthGen(cry, configuration.DomainAndPort.Domain, logger)
+	trustedSubnetMiddleware := middleware.IpFilter(logger, configuration.TrustedSubnet)
 
 	r := setupRouter(logger)
 	r.GET(`/:id`, getHandler.Handle)
@@ -144,6 +147,7 @@ func initServer(configuration *config.Config) *gin.Engine {
 	r.GET(`/api/user/urls`, authMiddleware, getUserShortLinkHandler.Handle)
 	r.DELETE(`/api/user/urls`, authMiddleware, deleteUserShortLinkHandler.Handle)
 	r.GET(`/ping`, getPing.Handle)
+	r.GET(`/api/internal/stats`, trustedSubnetMiddleware, getStats.Handle)
 
 	return r
 }

@@ -2,6 +2,7 @@
 package service
 
 import (
+	"sanbright/go_shortener/internal/app/dto/stats"
 	"sanbright/go_shortener/internal/app/entity"
 	"sanbright/go_shortener/internal/app/repository"
 
@@ -28,4 +29,10 @@ func (service *ReadShortLinkService) GetByShortLink(shortLink string) (*entity.S
 // userID - уникальный идентификатор пользователя
 func (service *ReadShortLinkService) GetByUserID(userID string) (*[]entity.ShortLinkEntity, error) {
 	return service.repository.FindByUserID(uuid.MustParse(userID))
+}
+
+func (service *ReadShortLinkService) GetStat() (*stats.GetResponse, error) {
+	urls, users, err := service.repository.GetStat()
+
+	return &stats.GetResponse{Urls: urls, Users: users}, err
 }

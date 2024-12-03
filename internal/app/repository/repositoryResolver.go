@@ -33,6 +33,7 @@ type IShortLinkRepository interface {
 	FindByURL(URL string) (*entity.ShortLinkEntity, error)
 	FindByUserID(uuid uuid.UUID) (*[]entity.ShortLinkEntity, error)
 	Delete(shortLinkList []string, userID string) error
+	GetStat() (int, int, error)
 }
 
 // Resolver резолвер, определяет какое хранилище необходимо использовать и возвращает его для использования
