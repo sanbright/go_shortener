@@ -169,3 +169,8 @@ func (repo *ShortLinkStorageRepository) AddBatch(shortLinks batch.AddBatchDtoLis
 func (repo *ShortLinkStorageRepository) Delete(shortLinkList []string, userID string) error {
 	return nil
 }
+
+// GetStat получение статистики по коротким ссылкам
+func (repo *ShortLinkStorageRepository) GetStat() (int, int, error) {
+	return 0, 0, nil
+}

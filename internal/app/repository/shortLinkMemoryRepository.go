@@ -103,3 +103,8 @@ func (repo *ShortLinkMemoryRepository) Delete(shortLinkList []string, userID str
 
 	return nil
 }
+
+// GetStat получение статистики по коротким ссылкам
+func (repo *ShortLinkMemoryRepository) GetStat() (int, int, error) {
+	return 0, 0, nil
+}

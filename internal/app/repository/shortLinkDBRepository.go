@@ -192,3 +192,20 @@ func (repo *ShortLinkDBRepository) Delete(shortLinkList []string, userID string)
 
 	return nil
 }
+
+// GetStat получение статистики по коротким ссылкам
+func (repo *ShortLinkDBRepository) GetStat() (int, int, error) {
+	var links, urls int
+
+	err := repo.db.Get(&links, `SELECT COUNT(*) FROM short_link;`)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, 0, err
+	}
+
+	err = repo.db.Get(&urls, `SELECT COUNT(DISTINCT user_id) FROM short_link;`)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, 0, err
+	}
+
+	return links, urls, nil
+}
