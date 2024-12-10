@@ -106,5 +106,18 @@ func (repo *ShortLinkMemoryRepository) Delete(shortLinkList []string, userID str
 
 // GetStat получение статистики по коротким ссылкам
 func (repo *ShortLinkMemoryRepository) GetStat() (int, int, error) {
-	return 0, 0, nil
+	var uniqUsers = make(map[uuid.UUID]bool)
+	var uniqLinks = make(map[string]bool)
+
+	for shortLinks, v := range repo.Items {
+		if !uniqUsers[v.UserID] {
+			uniqUsers[v.UserID] = true
+		}
+
+		if !uniqLinks[shortLinks] {
+			uniqLinks[shortLinks] = true
+		}
+	}
+
+	return len(uniqLinks), len(uniqUsers), nil
 }
