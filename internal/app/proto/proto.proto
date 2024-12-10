@@ -1,0 +1,32 @@
+option go_package = "./";
+
+package internal.app.proto;
+
+message PingRequest {
+}
+
+message PingResponse {
+  int32 code = 1;
+  string error = 2;
+}
+
+message StatisticRequest {
+}
+
+message StatisticResponse {
+  int32 code = 1;
+  int32 urls = 2;
+  int32 users = 3;
+}
+
+message PostURLRequest {
+  string url = 1;
+}
+
+message PostURLResponse {
+  string short_url = 1;
+}
+
+service Service {
+
+}
