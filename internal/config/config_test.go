@@ -30,6 +30,7 @@ func TestNewConfig(t *testing.T) {
 		databaseDSN   string
 		fileConfig    string
 		trustedSubnet string
+		GRPCHost      string
 		want          want
 	}{
 		{
@@ -40,6 +41,7 @@ func TestNewConfig(t *testing.T) {
 			databaseDSN:   "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable",
 			fileConfig:    "",
 			trustedSubnet: "",
+			GRPCHost:      "",
 			want: want{
 				databaseDSN:       "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable",
 				storagePath:       "/test.db",
@@ -56,6 +58,7 @@ func TestNewConfig(t *testing.T) {
 			databaseDSN:   "",
 			fileConfig:    "",
 			trustedSubnet: "",
+			GRPCHost:      "",
 			want: want{
 				databaseDSN:       "",
 				storagePath:       basePath + "/test.db",
@@ -72,6 +75,7 @@ func TestNewConfig(t *testing.T) {
 			databaseDSN:   "",
 			fileConfig:    basePath + "/../../config.json.dist",
 			trustedSubnet: "",
+			GRPCHost:      "",
 			want: want{
 				databaseDSN:       "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=enable",
 				storagePath:       basePath + "/test.db",
@@ -86,7 +90,7 @@ func TestNewConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			flag.CommandLine = flag.NewFlagSet("-a localhost:8081 -f test.db", flag.ContinueOnError)
 
-			config, err := NewConfig(tt.serverAddress, tt.baseURL, tt.storagePath, tt.databaseDSN, false, tt.fileConfig, tt.trustedSubnet)
+			config, err := NewConfig(tt.serverAddress, tt.baseURL, tt.storagePath, tt.databaseDSN, false, tt.fileConfig, tt.trustedSubnet, tt.GRPCHost)
 
 			if err != nil {
 				t.Errorf("%v: ERROR '%v'", tt.name, err.Error())

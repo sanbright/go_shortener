@@ -1,6 +1,8 @@
-option go_package = "./";
+syntax = "proto3";
 
-package internal.app.proto;
+option go_package = "./proto";
+
+package proto;
 
 message PingRequest {
 }
@@ -11,6 +13,7 @@ message PingResponse {
 }
 
 message StatisticRequest {
+  string query = 1;
 }
 
 message StatisticResponse {
@@ -28,5 +31,6 @@ message PostURLResponse {
 }
 
 service Service {
-
+  rpc GetStat(StatisticRequest) returns (StatisticResponse);
+  rpc Ping(PingRequest) returns (PingResponse);
 }

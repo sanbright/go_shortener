@@ -15,13 +15,13 @@ func IpFilter(logger *zap.Logger, trustedSubnet string) gin.HandlerFunc {
 
 		IP := c.GetHeader("X-Real-IP")
 		if IP == "" {
-			c.String(http.StatusInternalServerError, "")
+			c.String(http.StatusForbidden, "")
 			c.Abort()
 			return
 		}
 
-		if checkIP(IP, trustedSubnet) {
-			c.String(http.StatusInternalServerError, "")
+		if !checkIP(IP, trustedSubnet) {
+			c.String(http.StatusForbidden, "")
 			c.Abort()
 			return
 		}
