@@ -2,6 +2,7 @@ test:
 	go test cmd/shortener/*.go
 	go test internal/app/handler/*
 	go test internal/app/generator/*
+	go test internal/app/middleware/*
 	go test internal/config/*
 
 bench:
