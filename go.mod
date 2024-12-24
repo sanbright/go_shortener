@@ -15,7 +15,7 @@ require (
 	github.com/lib/pq v1.10.9
 	go.uber.org/zap v1.27.0
 	golang.org/x/tools v0.26.0
-	google.golang.org/grpc v1.69.0
+	google.golang.org/grpc v1.69.2
 	honnef.co/go/tools v0.5.1
 )
 

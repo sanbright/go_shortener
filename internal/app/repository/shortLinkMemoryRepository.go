@@ -94,11 +94,14 @@ func (repo *ShortLinkMemoryRepository) AddBatch(shortLinks batch.AddBatchDtoList
 
 // Delete удаление списка коротких ссылок.
 //
-//		shortLinkList - список удаляемых коротких ссылок.
-//	 userID - идентификатор пользователя
+//	shortLinkList - список удаляемых коротких ссылок.
+//	userID - идентификатор пользователя
 func (repo *ShortLinkMemoryRepository) Delete(shortLinkList []string, userID string) error {
 	for _, shortLink := range shortLinkList {
-		repo.Items[shortLink].IsDeleted = true
+		if _, exists := repo.Items[shortLink]; exists {
+			repo.Items[shortLink].IsDeleted = true
+			//return fmt.Errorf("not found by short link: %s", shortLink)
+		}
 	}
 
 	return nil

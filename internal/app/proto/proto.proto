@@ -30,7 +30,44 @@ message PostURLResponse {
   string short_url = 1;
 }
 
+message UserURL {
+  string short_url = 1;
+  string original_url = 2;
+}
+
+message GetByUserRequest {
+  string auth = 1;
+}
+
+message GetByUserResponse {
+  int32 code = 1;
+  repeated UserURL urls = 2;
+}
+
+message PostShortLinkRequest {
+  string auth = 1;
+  string url = 2;
+}
+
+message PostShortLinkResponse {
+  int32 code = 1;
+  string short_url = 2;
+}
+
+message DeleteRequest {
+  string auth = 1;
+  repeated string urls = 2;
+}
+
+message DeleteResponse {
+  int32 code = 1;
+  string status = 2;
+}
+
 service Service {
   rpc GetStat(StatisticRequest) returns (StatisticResponse);
   rpc Ping(PingRequest) returns (PingResponse);
+  rpc GetUsersURLs(GetByUserRequest) returns (GetByUserResponse);
+  rpc PostShortLink(PostShortLinkRequest) returns (PostShortLinkResponse);
+  rpc DeleteURLs (DeleteRequest) returns (DeleteResponse);
 }

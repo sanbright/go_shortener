@@ -19,8 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Service_GetStat_FullMethodName = "/proto.Service/GetStat"
-	Service_Ping_FullMethodName    = "/proto.Service/Ping"
+	Service_GetStat_FullMethodName       = "/proto.Service/GetStat"
+	Service_Ping_FullMethodName          = "/proto.Service/Ping"
+	Service_GetUsersURLs_FullMethodName  = "/proto.Service/GetUsersURLs"
+	Service_PostShortLink_FullMethodName = "/proto.Service/PostShortLink"
+	Service_DeleteURLs_FullMethodName    = "/proto.Service/DeleteURLs"
 )
 
 // ServiceClient is the client API for Service service.
@@ -29,6 +32,9 @@ const (
 type ServiceClient interface {
 	GetStat(ctx context.Context, in *StatisticRequest, opts ...grpc.CallOption) (*StatisticResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	GetUsersURLs(ctx context.Context, in *GetByUserRequest, opts ...grpc.CallOption) (*GetByUserResponse, error)
+	PostShortLink(ctx context.Context, in *PostShortLinkRequest, opts ...grpc.CallOption) (*PostShortLinkResponse, error)
+	DeleteURLs(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
 }
 
 type serviceClient struct {
@@ -59,12 +65,45 @@ func (c *serviceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.
 	return out, nil
 }
 
+func (c *serviceClient) GetUsersURLs(ctx context.Context, in *GetByUserRequest, opts ...grpc.CallOption) (*GetByUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetByUserResponse)
+	err := c.cc.Invoke(ctx, Service_GetUsersURLs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) PostShortLink(ctx context.Context, in *PostShortLinkRequest, opts ...grpc.CallOption) (*PostShortLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PostShortLinkResponse)
+	err := c.cc.Invoke(ctx, Service_PostShortLink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) DeleteURLs(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteResponse)
+	err := c.cc.Invoke(ctx, Service_DeleteURLs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility.
 type ServiceServer interface {
 	GetStat(context.Context, *StatisticRequest) (*StatisticResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	GetUsersURLs(context.Context, *GetByUserRequest) (*GetByUserResponse, error)
+	PostShortLink(context.Context, *PostShortLinkRequest) (*PostShortLinkResponse, error)
+	DeleteURLs(context.Context, *DeleteRequest) (*DeleteResponse, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -80,6 +119,15 @@ func (UnimplementedServiceServer) GetStat(context.Context, *StatisticRequest) (*
 }
 func (UnimplementedServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedServiceServer) GetUsersURLs(context.Context, *GetByUserRequest) (*GetByUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsersURLs not implemented")
+}
+func (UnimplementedServiceServer) PostShortLink(context.Context, *PostShortLinkRequest) (*PostShortLinkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostShortLink not implemented")
+}
+func (UnimplementedServiceServer) DeleteURLs(context.Context, *DeleteRequest) (*DeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteURLs not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 func (UnimplementedServiceServer) testEmbeddedByValue()                 {}
@@ -138,6 +186,60 @@ func _Service_Ping_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_GetUsersURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).GetUsersURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_GetUsersURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).GetUsersURLs(ctx, req.(*GetByUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_PostShortLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostShortLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).PostShortLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_PostShortLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).PostShortLink(ctx, req.(*PostShortLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_DeleteURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DeleteURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_DeleteURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DeleteURLs(ctx, req.(*DeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +254,18 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _Service_Ping_Handler,
+		},
+		{
+			MethodName: "GetUsersURLs",
+			Handler:    _Service_GetUsersURLs_Handler,
+		},
+		{
+			MethodName: "PostShortLink",
+			Handler:    _Service_PostShortLink_Handler,
+		},
+		{
+			MethodName: "DeleteURLs",
+			Handler:    _Service_DeleteURLs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

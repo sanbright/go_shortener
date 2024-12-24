@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"google.golang.org/grpc"
 	"io"
+	"log"
+	"net"
 	"sanbright/go_shortener/internal/app/middleware"
+	"sanbright/go_shortener/internal/app/proto"
 	"strings"
 	"testing"
 
@@ -14,6 +18,7 @@ import (
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 
+	"context"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,6 +36,31 @@ func setupLogger() *zap.Logger {
 	}
 
 	return logger
+}
+
+type MockShortLinkGenerator struct {
+}
+
+func NewMockShortLinkGenerator() *MockShortLinkGenerator {
+	return &MockShortLinkGenerator{}
+}
+
+func (generator *MockShortLinkGenerator) UniqGenerate() string {
+	return "QYsTVwgznh"
+}
+
+func setupGRPCClient() (proto.ServiceClient, context.Context, *grpc.ClientConn) {
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to dial bufnet: %v", err)
+	}
+
+	return proto.NewServiceClient(conn), ctx, conn
+}
+
+func bufDialer(context.Context, string) (net.Conn, error) {
+	return lis.Dial()
 }
 
 func TestGetShortLinkHandler_Handle(t *testing.T) {

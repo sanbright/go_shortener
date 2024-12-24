@@ -130,12 +130,18 @@ func main() {
 	}
 }
 
-func initService(configuration *config.Config, log *zap.Logger) (*service.PingService, *service.StatisticService) {
+func initService(configuration *config.Config, log *zap.Logger) (*service.PingService, *service.StatisticService, *service.ReadShortLinkService, *service.WriteShortLinkService, *generator.CryptGenerator) {
+	shortLinkGenerator := generator.NewShortLinkGenerator(ShortLinkLen)
+
 	shortLinkRepository, _ := repository.NewRepositoryResolver(configuration, log).Execute()
 	readShortLinkService := service.NewReadShortLinkService(shortLinkRepository)
+	writeShortLinkService := service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, log)
 
 	return service.NewPingService(configuration.DatabaseDSN, log),
-		service.NewStatisticService(readShortLinkService, log)
+		service.NewStatisticService(readShortLinkService, log),
+		readShortLinkService,
+		writeShortLinkService,
+		generator.NewCryptGenerator(CryptoKey)
 }
 
 func initGRPCServer(configuration *config.Config, log *zap.Logger) {
@@ -146,9 +152,9 @@ func initGRPCServer(configuration *config.Config, log *zap.Logger) {
 	}
 
 	s := grpc.NewServer()
-	pingService, statService := initService(configuration, log)
+	pingService, statService, readShortLinkService, writeShortLinkService, cry := initService(configuration, log)
 
-	proto.RegisterServiceServer(s, proto.NewGPRCServer(pingService, statService))
+	proto.RegisterServiceServer(s, proto.NewGPRCServer(pingService, statService, readShortLinkService, writeShortLinkService, cry, configuration.BaseURL.String()))
 
 	fmt.Println("Сервер gRPC начал работу " + configuration.GRPCHost)
 	// получаем запрос gRPC
@@ -164,7 +170,7 @@ func initGRPCServer(configuration *config.Config, log *zap.Logger) {
 }
 
 func initServer(configuration *config.Config, log *zap.Logger) *gin.Engine {
-	pingService, _ := initService(configuration, log)
+	pingService, _, _, _, cry := initService(configuration, log)
 
 	shortLinkGenerator := generator.NewShortLinkGenerator(ShortLinkLen)
 	shortLinkRepository, _ := repository.NewRepositoryResolver(configuration, log).Execute()
@@ -181,7 +187,6 @@ func initServer(configuration *config.Config, log *zap.Logger) *gin.Engine {
 	deleteUserShortLinkHandler := handler.NewDeleteUserShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, log)
 	getStats := handler.NewGetStatsHandler(readShortLinkService)
 
-	cry := generator.NewCryptGenerator(CryptoKey)
 	authMiddleware := middleware.Auth(cry, log)
 	authGenMiddleware := middleware.AuthGen(cry, configuration.DomainAndPort.Domain, log)
 	trustedSubnetMiddleware := middleware.IpFilter(log, configuration.TrustedSubnet)
