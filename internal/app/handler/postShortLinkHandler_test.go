@@ -4,6 +4,7 @@ import (
 	"io"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/middleware"
+	"sanbright/go_shortener/internal/app/proto"
 	"strings"
 	"testing"
 
@@ -15,17 +16,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-type MockShortLinkGenerator struct {
-}
-
-func NewMockShortLinkGenerator() *MockShortLinkGenerator {
-	return &MockShortLinkGenerator{}
-}
-
-func (generator *MockShortLinkGenerator) UniqGenerate() string {
-	return "QYsTVwgznh"
-}
 
 func TestPostShortLinkHandler_Handle(t *testing.T) {
 
@@ -121,6 +111,62 @@ func TestPostShortLinkHandler_Handle(t *testing.T) {
 
 			if tb := tt.want.body; tb != string(body) {
 				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tb, string(body))
+			}
+		})
+	}
+}
+
+func TestPostShortLinkHandler_GRPC(t *testing.T) {
+	type want struct {
+		statusCode int
+		body       string
+		location   string
+	}
+
+	tests := []struct {
+		name string
+		auth string
+		body string
+		want want
+	}{
+		{
+			name: "SuccessAppendShortLink",
+			auth: "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYB7ido58lc8mLgBXaUzKAoydcxieg==",
+			body: "https://google.com/test",
+			want: want{
+				statusCode: http.StatusCreated,
+				body:       "http://example.com/QYsTVwgznh",
+			},
+		},
+		{
+			name: "ConflictAppendShortLink",
+			auth: "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYB7ido58lc8mLgBXaUzKAoydcxieg==",
+			body: "https://google.com/test",
+			want: want{
+				statusCode: http.StatusConflict,
+				body:       "http://example.com/QYsTVwgznh",
+			},
+		},
+	}
+
+	client, ctx, conn := setupGRPCClient()
+
+	defer conn.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			response, err := client.PostShortLink(ctx, &proto.PostShortLinkRequest{Url: tt.body, Auth: tt.auth})
+
+			if err != nil {
+				t.Fatalf("PostShortLink failed: %v", err)
+			}
+
+			if code := tt.want.statusCode; code != int(response.Code) {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, code, int(response.Code))
+			}
+
+			if url := tt.want.body; url != response.ShortUrl {
+				t.Errorf("%v: ShortUrl = '%v', want = '%v'", tt.name, url, response.ShortUrl)
 			}
 		})
 	}

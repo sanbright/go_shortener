@@ -94,12 +94,33 @@ func (repo *ShortLinkMemoryRepository) AddBatch(shortLinks batch.AddBatchDtoList
 
 // Delete удаление списка коротких ссылок.
 //
-//		shortLinkList - список удаляемых коротких ссылок.
-//	 userID - идентификатор пользователя
+//	shortLinkList - список удаляемых коротких ссылок.
+//	userID - идентификатор пользователя
 func (repo *ShortLinkMemoryRepository) Delete(shortLinkList []string, userID string) error {
 	for _, shortLink := range shortLinkList {
-		repo.Items[shortLink].IsDeleted = true
+		if _, exists := repo.Items[shortLink]; exists {
+			repo.Items[shortLink].IsDeleted = true
+			//return fmt.Errorf("not found by short link: %s", shortLink)
+		}
 	}
 
 	return nil
+}
+
+// GetStat получение статистики по коротким ссылкам
+func (repo *ShortLinkMemoryRepository) GetStat() (int, int, error) {
+	var uniqUsers = make(map[uuid.UUID]bool)
+	var uniqLinks = make(map[string]bool)
+
+	for shortLinks, v := range repo.Items {
+		if !uniqUsers[v.UserID] {
+			uniqUsers[v.UserID] = true
+		}
+
+		if !uniqLinks[shortLinks] {
+			uniqLinks[shortLinks] = true
+		}
+	}
+
+	return len(uniqLinks), len(uniqUsers), nil
 }

@@ -33,6 +33,10 @@ type Config struct {
 	DatabaseDSN string `json:"database_dsn"`
 	// HTTPS - Использование https
 	HTTPS bool `json:"enable_https"`
+	// TrustedSubnet - Использование https
+	TrustedSubnet string
+	// GRPCHost - Использование grpc
+	GRPCHost string `json:"grpc_address"`
 }
 
 // DomainAndPort - Домен и порт
@@ -49,7 +53,16 @@ type ExternalURL struct {
 }
 
 // NewConfig Конструктор инициализация конфиругации
-func NewConfig(serverAddress string, baseURL string, storagePath string, databaseDSN string, HTTPS bool, configFile string) (*Config, error) {
+func NewConfig(
+	serverAddress string,
+	baseURL string,
+	storagePath string,
+	databaseDSN string,
+	HTTPS bool,
+	configFile string,
+	trustedSubnet string,
+	grpcServerAddress string,
+) (*Config, error) {
 
 	if len(serverAddress) == 0 {
 		serverAddress = DefaultServerAddress
@@ -75,14 +88,20 @@ func NewConfig(serverAddress string, baseURL string, storagePath string, databas
 	var externalURL ExternalURL
 	var storagePathConf string
 	var databaseDSNConf string
+	var trustedSubnetConf string
 	var HTTPSConf bool
+	var GRPCHost string
 
 	flag.Var(&domainAndPort, "a", "listen host and port")
 	flag.Var(&externalURL, "b", "domain in short link")
 	flag.StringVar(&storagePathConf, "f", "", "file storage path")
 	flag.StringVar(&databaseDSNConf, "d", "", "database storage")
+	flag.StringVar(&trustedSubnetConf, "t", "", "trusted subnet")
 	flag.BoolVar(&HTTPSConf, "s", HTTPS, "HTTPS Enable")
-	flag.Parse()
+	flag.StringVar(&GRPCHost, "g", grpcServerAddress, "GRPC Server host")
+
+	fmt.Printf("GRPCHost: %+v\n", GRPCHost)
+	fmt.Printf("grpcServerAddress: %+v\n", grpcServerAddress)
 
 	fileConfig := readConfig(configFile)
 
@@ -106,6 +125,8 @@ func NewConfig(serverAddress string, baseURL string, storagePath string, databas
 		StoragePath:   cmp.Or(storagePathConf, fileConfig.StoragePath, storagePath),
 		DatabaseDSN:   cmp.Or(databaseDSNConf, fileConfig.DatabaseDSN, databaseDSN),
 		HTTPS:         cmp.Or(HTTPSConf, fileConfig.HTTPS, false),
+		TrustedSubnet: cmp.Or(trustedSubnetConf, trustedSubnet),
+		GRPCHost:      cmp.Or(GRPCHost, fileConfig.GRPCHost),
 	}, nil
 }
 

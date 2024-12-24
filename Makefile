@@ -2,6 +2,7 @@ test:
 	go test cmd/shortener/*.go
 	go test internal/app/handler/*
 	go test internal/app/generator/*
+	go test internal/app/middleware/*
 	go test internal/config/*
 
 bench:
@@ -9,6 +10,9 @@ bench:
 
 serve:
 	go run cmd/shortener/main.go -a localhost:8081 -b http://localhost:8081 -d "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable"
+
+gserve:
+	go run cmd/shortener/main.go -a localhost:8081 -b http://localhost:8081 -g ":8088" -d "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=go_mark sslmode=disable"
 
 build:
 	go build  -ldflags "-X main.buildVersion=1.0.0 -X main.buildDate=$(date +%Y-%m-%d) -X main.buildCommit=$(git rev-parse HEAD)" -o shortener main.go
@@ -42,3 +46,6 @@ godoc-rm:
 godoc:
 	sudo cp -r ./ /usr/local/go/src/sanbright/go_shortener
 	godoc -http=:9009 --play
+
+proto:
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative internal/app/proto/proto.proto
