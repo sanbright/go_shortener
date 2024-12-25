@@ -170,13 +170,8 @@ func initGRPCServer(configuration *config.Config, log *zap.Logger) {
 }
 
 func initServer(configuration *config.Config, log *zap.Logger) *gin.Engine {
-	pingService, _, _, _, cry := initService(configuration, log)
+	pingService, _, readShortLinkService, writeShortLinkService, cry := initService(configuration, log)
 
-	shortLinkGenerator := generator.NewShortLinkGenerator(ShortLinkLen)
-	shortLinkRepository, _ := repository.NewRepositoryResolver(configuration, log).Execute()
-
-	readShortLinkService := service.NewReadShortLinkService(shortLinkRepository)
-	writeShortLinkService := service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, log)
 	getHandler := handler.NewGetShortLinkHandler(readShortLinkService)
 	postHandler := handler.NewPostShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL)
 	postAPIHandler := handler.NewPostAPIShortLinkHandler(writeShortLinkService, configuration.BaseURL.URL, log)
