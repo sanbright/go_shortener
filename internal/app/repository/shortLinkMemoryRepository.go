@@ -113,6 +113,10 @@ func (repo *ShortLinkMemoryRepository) GetStat() (int, int, error) {
 	var uniqLinks = make(map[string]bool)
 
 	for shortLinks, v := range repo.Items {
+		if v.IsDeleted {
+			continue
+		}
+
 		if !uniqUsers[v.UserID] {
 			uniqUsers[v.UserID] = true
 		}

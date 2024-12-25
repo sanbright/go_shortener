@@ -118,6 +118,17 @@ func init() {
 		log.Error("hortLinkFixture: Error = '%v'", zap.Error(err))
 	}
 
+	_, err = shortLinkRepository.Add("qwetyr123i1", "https:\\\\google1.com", "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
+	if err != nil {
+		log.Error("hortLinkFixture: Error = '%v'", zap.Error(err))
+	}
+
+	del := []string{"qwetyr123i1"}
+	err = shortLinkRepository.Delete(del, "4c1b4334-8f1c-4874-8750-c5214e2f48b9")
+	if err != nil {
+		log.Error("hortLinkFixture: Error = '%v'", zap.Error(err))
+	}
+
 	shortLinkGenerator := NewMockShortLinkGenerator()
 	writeShortLinkService := service.NewWriteShortLinkService(shortLinkRepository, shortLinkGenerator, log)
 	readShortLinkService := service.NewReadShortLinkService(shortLinkRepository)
@@ -174,11 +185,11 @@ func TestGetStatsHandler_GRPC(t *testing.T) {
 			}
 
 			if urls := tt.want.urls; urls != response.Urls {
-				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, urls, string(response.Urls))
+				t.Errorf("%v: Urls = '%v', want = '%v'", tt.name, urls, response.Urls)
 			}
 
 			if users := tt.want.users; users != response.Users {
-				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, users, string(response.Users))
+				t.Errorf("%v: Users = '%v', want = '%v'", tt.name, users, response.Users)
 			}
 		})
 	}

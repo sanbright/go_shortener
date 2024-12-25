@@ -224,3 +224,21 @@ func (s *Server) PostAPI(ctx context.Context, r *PostAPIRequest) (*PostAPIRespon
 
 	return &PostAPIResponse{Code: int32(statusCode), ShortUrl: s.baseUrl + "/" + shortLinkEntity.ShortLink}, nil
 }
+
+func (s *Server) GetURL(ctx context.Context, r *GetShortLinkRequest) (*GetShortLinkResponse, error) {
+	shortLinkEntity, err := s.rslService.GetByShortLink(r.ShortUrl)
+
+	if shortLinkEntity == nil {
+		return &GetShortLinkResponse{Code: int32(http.StatusNotFound)}, nil
+	}
+
+	if err != nil {
+		return &GetShortLinkResponse{Code: int32(http.StatusBadRequest)}, nil
+	}
+
+	if shortLinkEntity.IsDeleted {
+		return &GetShortLinkResponse{Code: int32(http.StatusGone)}, nil
+	}
+
+	return &GetShortLinkResponse{Code: int32(http.StatusOK), OriginalUrl: shortLinkEntity.URL}, nil
+}

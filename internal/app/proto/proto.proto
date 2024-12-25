@@ -94,6 +94,15 @@ message PostAPIResponse {
   string short_url = 2;
 }
 
+message GetShortLinkRequest {
+  string short_url = 1;
+}
+
+message GetShortLinkResponse {
+  int32 code = 1;
+  string original_url = 2;
+}
+
 service Service {
   rpc GetStat(StatisticRequest) returns (StatisticResponse);
   rpc Ping(PingRequest) returns (PingResponse);
@@ -102,4 +111,5 @@ service Service {
   rpc DeleteURLs(DeleteRequest) returns (DeleteResponse);
   rpc PostBatchURLs(PostBatchShortLinkRequest) returns (PostBatchShortLinkResponse);
   rpc PostAPI (PostAPIRequest) returns (PostAPIResponse);
+  rpc GetURL (GetShortLinkRequest) returns (GetShortLinkResponse);
 }
