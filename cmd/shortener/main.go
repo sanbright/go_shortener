@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"log"
@@ -89,45 +90,49 @@ func main() {
 	fmt.Printf("GRPCHost: %s\n", configuration.GRPCHost)
 	logger := setupLogger()
 
-	if configuration.GRPCHost != "" {
-		initGRPCServer(configuration, logger)
-	} else {
-		r := initServer(configuration, logger)
+	//if configuration.GRPCHost == "" {
 
-		srv := &http.Server{
-			Addr:    configuration.DomainAndPort.String(),
-			Handler: r,
-		}
+	//} else {
+	r := initServer(configuration, logger)
 
-		ctx, cancel := context.WithCancel(context.Background())
-
-		go func() {
-			var srvErr error
-			if configuration.HTTPS {
-				fmt.Printf("SSL mode\n")
-				srvErr = srv.ListenAndServeTLS("./key.crt", "./key.pem")
-			} else {
-				fmt.Printf("not SSL mode\n")
-				srvErr = srv.ListenAndServe()
-			}
-
-			if srvErr != nil {
-				log.Printf("Fatal error: %s", srvErr.Error())
-			}
-
-			os.Exit(0)
-		}()
-
-		stop := make(chan os.Signal, 1)
-		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-		<-stop
-
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Fatalf("Failed to gracefully shutdown server: %s", err.Error())
-		}
-
-		cancel()
+	srv := &http.Server{
+		Addr:    configuration.DomainAndPort.String(),
+		Handler: r,
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		var srvErr error
+		if configuration.HTTPS {
+			fmt.Printf("SSL mode\n")
+			srvErr = srv.ListenAndServeTLS("./key.crt", "./key.pem")
+		} else {
+			fmt.Printf("not SSL mode\n")
+			srvErr = srv.ListenAndServe()
+		}
+
+		if srvErr != nil {
+			log.Printf("Fatal error: %s", srvErr.Error())
+		}
+
+		os.Exit(0)
+	}()
+
+	grpc := initGRPCServer(configuration, logger)
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	<-stop
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Failed to gracefully shutdown server: %s", err.Error())
+	}
+
+	grpc.GracefulStop()
+
+	cancel()
+	//}
 }
 
 func initService(configuration *config.Config, log *zap.Logger) (*service.PingService, *service.StatisticService, *service.ReadShortLinkService, *service.WriteShortLinkService, *generator.CryptGenerator) {
@@ -144,29 +149,34 @@ func initService(configuration *config.Config, log *zap.Logger) (*service.PingSe
 		generator.NewCryptGenerator(CryptoKey)
 }
 
-func initGRPCServer(configuration *config.Config, log *zap.Logger) {
-	// определяем порт для сервера
-	listen, err := net.Listen("tcp", configuration.GRPCHost)
-	if err != nil {
-		log.Error("Add Batch Error", zap.Error(err))
-	}
-
+func initGRPCServer(configuration *config.Config, log *zap.Logger) *grpc.Server {
 	s := grpc.NewServer()
 	pingService, statService, readShortLinkService, writeShortLinkService, cry := initService(configuration, log)
 
 	proto.RegisterServiceServer(s, proto.NewGPRCServer(pingService, statService, readShortLinkService, writeShortLinkService, cry, configuration.BaseURL.String()))
 
-	fmt.Println("Сервер gRPC начал работу " + configuration.GRPCHost)
-	// получаем запрос gRPC
-	if err = s.Serve(listen); err != nil {
-		log.Error("Failure listen", zap.Error(err))
-	}
+	go func() {
+		log.Info("Config", zap.String("GRPCHost", cmp.Or(configuration.GRPCHost, ":8089")))
 
+		// определяем порт для сервера
+		listen, err := net.Listen("tcp", ":50051") //configuration.GRPCHost)
+		if err != nil {
+			log.Error("Add Batch Error", zap.Error(err))
+		}
+
+		fmt.Println("Сервер gRPC начал работу " + configuration.GRPCHost)
+		// получаем запрос gRPC
+		if err = s.Serve(listen); err != nil {
+			log.Error("Failure listen", zap.Error(err))
+		}
+	}()
 	defer func() {
 		if err := recover(); err != nil {
 			log.Fatal("Failure recover", zap.Any("error", err))
 		}
 	}()
+
+	return s
 }
 
 func initServer(configuration *config.Config, log *zap.Logger) *gin.Engine {

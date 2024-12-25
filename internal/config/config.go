@@ -100,12 +100,7 @@ func NewConfig(
 	flag.BoolVar(&HTTPSConf, "s", HTTPS, "HTTPS Enable")
 	flag.StringVar(&GRPCHost, "g", grpcServerAddress, "GRPC Server host")
 
-	fmt.Printf("GRPCHost: %+v\n", GRPCHost)
-	fmt.Printf("grpcServerAddress: %+v\n", grpcServerAddress)
-
 	fileConfig := readConfig(configFile)
-
-	fmt.Printf("Config: %+v\n", fileConfig)
 
 	var defC = &DomainAndPort{}
 	err := defC.Set(serverAddress)
