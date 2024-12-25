@@ -64,10 +64,42 @@ message DeleteResponse {
   string status = 2;
 }
 
+message BatchShortLink {
+  string correlation_id = 1;
+  string original_url = 2;
+}
+
+message ResultBatchShortLink {
+  string correlation_id = 1;
+  string short_url = 2;
+}
+
+message PostBatchShortLinkRequest {
+  string auth = 1;
+  repeated BatchShortLink urls = 2;
+}
+
+message PostBatchShortLinkResponse {
+  int32 code = 1;
+  repeated ResultBatchShortLink results = 2;
+}
+
+message PostAPIRequest {
+  string auth = 1;
+  string url = 2;
+}
+
+message PostAPIResponse {
+  int32 code = 1;
+  string short_url = 2;
+}
+
 service Service {
   rpc GetStat(StatisticRequest) returns (StatisticResponse);
   rpc Ping(PingRequest) returns (PingResponse);
   rpc GetUsersURLs(GetByUserRequest) returns (GetByUserResponse);
   rpc PostShortLink(PostShortLinkRequest) returns (PostShortLinkResponse);
-  rpc DeleteURLs (DeleteRequest) returns (DeleteResponse);
+  rpc DeleteURLs(DeleteRequest) returns (DeleteResponse);
+  rpc PostBatchURLs(PostBatchShortLinkRequest) returns (PostBatchShortLinkResponse);
+  rpc PostAPI (PostAPIRequest) returns (PostAPIResponse);
 }

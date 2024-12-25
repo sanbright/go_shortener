@@ -24,6 +24,8 @@ const (
 	Service_GetUsersURLs_FullMethodName  = "/proto.Service/GetUsersURLs"
 	Service_PostShortLink_FullMethodName = "/proto.Service/PostShortLink"
 	Service_DeleteURLs_FullMethodName    = "/proto.Service/DeleteURLs"
+	Service_PostBatchURLs_FullMethodName = "/proto.Service/PostBatchURLs"
+	Service_PostAPI_FullMethodName       = "/proto.Service/PostAPI"
 )
 
 // ServiceClient is the client API for Service service.
@@ -35,6 +37,8 @@ type ServiceClient interface {
 	GetUsersURLs(ctx context.Context, in *GetByUserRequest, opts ...grpc.CallOption) (*GetByUserResponse, error)
 	PostShortLink(ctx context.Context, in *PostShortLinkRequest, opts ...grpc.CallOption) (*PostShortLinkResponse, error)
 	DeleteURLs(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
+	PostBatchURLs(ctx context.Context, in *PostBatchShortLinkRequest, opts ...grpc.CallOption) (*PostBatchShortLinkResponse, error)
+	PostAPI(ctx context.Context, in *PostAPIRequest, opts ...grpc.CallOption) (*PostAPIResponse, error)
 }
 
 type serviceClient struct {
@@ -95,6 +99,26 @@ func (c *serviceClient) DeleteURLs(ctx context.Context, in *DeleteRequest, opts 
 	return out, nil
 }
 
+func (c *serviceClient) PostBatchURLs(ctx context.Context, in *PostBatchShortLinkRequest, opts ...grpc.CallOption) (*PostBatchShortLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PostBatchShortLinkResponse)
+	err := c.cc.Invoke(ctx, Service_PostBatchURLs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) PostAPI(ctx context.Context, in *PostAPIRequest, opts ...grpc.CallOption) (*PostAPIResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PostAPIResponse)
+	err := c.cc.Invoke(ctx, Service_PostAPI_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility.
@@ -104,6 +128,8 @@ type ServiceServer interface {
 	GetUsersURLs(context.Context, *GetByUserRequest) (*GetByUserResponse, error)
 	PostShortLink(context.Context, *PostShortLinkRequest) (*PostShortLinkResponse, error)
 	DeleteURLs(context.Context, *DeleteRequest) (*DeleteResponse, error)
+	PostBatchURLs(context.Context, *PostBatchShortLinkRequest) (*PostBatchShortLinkResponse, error)
+	PostAPI(context.Context, *PostAPIRequest) (*PostAPIResponse, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -128,6 +154,12 @@ func (UnimplementedServiceServer) PostShortLink(context.Context, *PostShortLinkR
 }
 func (UnimplementedServiceServer) DeleteURLs(context.Context, *DeleteRequest) (*DeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteURLs not implemented")
+}
+func (UnimplementedServiceServer) PostBatchURLs(context.Context, *PostBatchShortLinkRequest) (*PostBatchShortLinkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostBatchURLs not implemented")
+}
+func (UnimplementedServiceServer) PostAPI(context.Context, *PostAPIRequest) (*PostAPIResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostAPI not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 func (UnimplementedServiceServer) testEmbeddedByValue()                 {}
@@ -240,6 +272,42 @@ func _Service_DeleteURLs_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_PostBatchURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostBatchShortLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).PostBatchURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_PostBatchURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).PostBatchURLs(ctx, req.(*PostBatchShortLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_PostAPI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostAPIRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).PostAPI(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_PostAPI_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).PostAPI(ctx, req.(*PostAPIRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +334,14 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteURLs",
 			Handler:    _Service_DeleteURLs_Handler,
+		},
+		{
+			MethodName: "PostBatchURLs",
+			Handler:    _Service_PostBatchURLs_Handler,
+		},
+		{
+			MethodName: "PostAPI",
+			Handler:    _Service_PostAPI_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
