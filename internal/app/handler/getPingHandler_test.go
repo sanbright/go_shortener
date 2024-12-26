@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"net/http/httptest"
+	"sanbright/go_shortener/internal/app/service"
 	"sanbright/go_shortener/internal/config"
 	"strings"
 	"testing"
@@ -11,8 +12,11 @@ import (
 )
 
 func TestGetPingHandler_Handle(t *testing.T) {
-	configuration, _ := config.NewConfig("localhost:8080", "", "", "", false, "")
-	handler := NewGetPingHandler(configuration)
+	configuration, _ := config.NewConfig("localhost:8080", "", "", "", false, "", "", "")
+
+	logger := setupLogger()
+	pingService := service.NewPingService(configuration.DatabaseDSN, logger)
+	handler := NewGetPingHandler(pingService)
 
 	type want struct {
 		statusCode int

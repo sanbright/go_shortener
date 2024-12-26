@@ -4,8 +4,10 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/middleware"
+	"sanbright/go_shortener/internal/app/proto"
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 	"strings"
@@ -13,6 +15,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+const baseURL = "http://example.com"
 
 func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 
@@ -109,6 +113,65 @@ func TestGetUserShortLinkHandler_Handle(t *testing.T) {
 
 			if tbody := tt.want.body; tbody != string(body) {
 				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tbody, string(body))
+			}
+		})
+	}
+}
+
+func TestGetUserShortLinkHandler_GRPC(t *testing.T) {
+	type want struct {
+		statusCode int
+		location   string
+		urls       []*proto.UserURL
+	}
+
+	tests := []struct {
+		name        string
+		auth        string
+		contentType string
+		request     string
+		body        string
+		want        want
+	}{
+		{
+			name: "SuccessGettingUserShortLink_1",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			want: want{
+				statusCode: http.StatusOK,
+				urls: []*proto.UserURL{
+					{OriginalUrl: "https:\\\\testing.com\\ksjadkjas", ShortUrl: "http://example.com/sa42d45ds2"},
+					{OriginalUrl: "https:\\\\google.com", ShortUrl: "http://example.com/qwetyr123iu"},
+				},
+			},
+		},
+		{
+			name: "SuccessGettingUserShortLink_2",
+			auth: "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYB7ido58lc8mLgBXaUzKAoydcxieg==",
+			want: want{
+				statusCode: http.StatusNoContent,
+				urls:       nil,
+			},
+		},
+	}
+
+	client, ctx, conn := setupGRPCClient()
+
+	defer conn.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			response, err := client.GetUsersURLs(ctx, &proto.GetByUserRequest{Auth: tt.auth})
+
+			if err != nil {
+				t.Fatalf("GetUsersURLs failed: %v", err)
+			}
+
+			if code := tt.want.statusCode; code != int(response.Code) {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, code, int(response.Code))
+			}
+
+			if urls := tt.want.urls; !reflect.DeepEqual(urls, response.Urls) {
+				t.Errorf("%v: Urls = '%v', want = '%v'", tt.name, urls, response.Urls)
 			}
 		})
 	}

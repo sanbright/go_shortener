@@ -1,8 +1,13 @@
 package handler
 
 import (
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
+	"log"
+	"net"
 	"sanbright/go_shortener/internal/app/middleware"
+	"sanbright/go_shortener/internal/app/proto"
 	"strings"
 	"testing"
 
@@ -14,6 +19,7 @@ import (
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 
+	"context"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,6 +37,39 @@ func setupLogger() *zap.Logger {
 	}
 
 	return logger
+}
+
+type MockShortLinkGenerator struct {
+}
+
+func NewMockShortLinkGenerator() *MockShortLinkGenerator {
+	return &MockShortLinkGenerator{}
+}
+
+func (generator *MockShortLinkGenerator) UniqGenerate() string {
+	return "QYsTVwgznh"
+}
+
+func setupGRPCClient() (proto.ServiceClient, context.Context, *grpc.ClientConn) {
+	ctx := context.Background()
+
+	conn, err := grpc.NewClient(
+		"passthrough:bufnet",
+		grpc.WithContextDialer(
+			bufDialer,
+		),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to dial bufnet: %v", err)
+	}
+
+	return proto.NewServiceClient(conn), ctx, conn
+}
+
+func bufDialer(context.Context, string) (net.Conn, error) {
+	return lis.Dial()
 }
 
 func TestGetShortLinkHandler_Handle(t *testing.T) {
@@ -174,5 +213,98 @@ func TestGetShortLinkHandler_Handle(t *testing.T) {
 				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, location, response.Header().Get("Location"))
 			}
 		})
+	}
+}
+
+func TestGetShortLinkHandler_GRPC(t *testing.T) {
+
+	type want struct {
+		statusCode int
+		body       string
+		location   string
+	}
+
+	tests := []struct {
+		name        string
+		method      string
+		contentType string
+		request     string
+		body        string
+		want        want
+	}{
+		{
+			name:    "SuccessGettingShortLink_1",
+			method:  http.MethodGet,
+			request: "sa42d45ds2",
+			want: want{
+				statusCode: http.StatusOK,
+				body:       "<a href=\"https:\\\\testing.com\\ksjadkjas\">Temporary Redirect</a>.\n\n",
+				location:   "https:\\\\testing.com\\ksjadkjas",
+			},
+		},
+		{
+			name:    "SuccessGettingShortLink_2",
+			method:  http.MethodGet,
+			request: "qwetyr123iu",
+			want: want{
+				statusCode: http.StatusOK,
+				body:       "<a href=\"https:\\\\google.com\">Temporary Redirect</a>.\n\n",
+				location:   "https:\\\\google.com",
+			},
+		},
+		{
+			name:    "NotFoundGettingShortLink",
+			method:  http.MethodGet,
+			request: "qwetyr123i1",
+			want: want{
+				statusCode: http.StatusGone,
+				body:       "Not found link",
+				location:   "",
+			},
+		},
+		{
+			name:    "UndefinedURL",
+			method:  http.MethodGet,
+			request: "testesttest",
+			body:    "",
+			want: want{
+				statusCode: http.StatusNotFound,
+				body:       "not found by short link: testesttest",
+				location:   "",
+			},
+		},
+		{
+			name:    "UncorrectURL",
+			method:  http.MethodGet,
+			request: "/",
+			body:    "",
+			want: want{
+				statusCode: http.StatusNotFound,
+				body:       "404 page not found",
+				location:   "",
+			},
+		},
+	}
+	client, ctx, conn := setupGRPCClient()
+
+	defer conn.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			response, err := client.GetURL(ctx, &proto.GetShortLinkRequest{ShortUrl: tt.request})
+
+			if err != nil {
+				t.Fatalf("GetUsersURLs failed: %v", err)
+			}
+
+			if code := tt.want.statusCode; code != int(response.Code) {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, code, int(response.Code))
+			}
+
+			if url := tt.want.location; url != response.OriginalUrl {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, url, response.OriginalUrl)
+			}
+		})
+
 	}
 }

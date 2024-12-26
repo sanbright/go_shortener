@@ -4,8 +4,10 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/middleware"
+	"sanbright/go_shortener/internal/app/proto"
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 	"strings"
@@ -128,6 +130,88 @@ func TestPostBathShortLinkHandler_Handle(t *testing.T) {
 
 			if tb := tt.want.body; tb != string(body) {
 				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tb, string(body))
+			}
+		})
+	}
+}
+
+func TestPostBathShortLinkHandler_GRPC(t *testing.T) {
+	type want struct {
+		statusCode int
+		location   string
+		result     []*proto.ResultBatchShortLink
+	}
+
+	tests := []struct {
+		name        string
+		auth        string
+		contentType string
+		items       []*proto.BatchShortLink
+		want        want
+	}{
+		{
+			name: "SuccessAppendOneBatchShortLink",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			items: []*proto.BatchShortLink{
+				{CorrelationId: "asdasdas", OriginalUrl: "https://google.com"},
+			},
+			want: want{
+				statusCode: http.StatusCreated,
+				result: []*proto.ResultBatchShortLink{
+					{CorrelationId: "asdasdas", ShortUrl: "http://example.com/QYsTVwgznh"},
+				},
+			},
+		},
+		{
+			name: "SuccessAppendTwoBatchShortLink",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			items: []*proto.BatchShortLink{
+				{CorrelationId: "dd112935-bb0f-4645-bb19-49a1418ba692", OriginalUrl: "http://tdbju0uipsn1ng.com/xirnkpgj9cvjyn/x2jdb5h9ltw"},
+				{CorrelationId: "2cfbbb87-643c-4dfa-a4c4-a40b9213188f", OriginalUrl: "http://mpxjbc26zly.biz/vdhyungaq6m"},
+			},
+			want: want{
+				statusCode: http.StatusCreated,
+				result: []*proto.ResultBatchShortLink{
+					{CorrelationId: "dd112935-bb0f-4645-bb19-49a1418ba692", ShortUrl: "http://example.com/QYsTVwgznh"},
+					{CorrelationId: "2cfbbb87-643c-4dfa-a4c4-a40b9213188f", ShortUrl: "http://example.com/QYsTVwgznh"},
+				},
+			},
+		},
+		{
+			name: "ConflictAppendTwoBatchShortLink",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			items: []*proto.BatchShortLink{
+				{CorrelationId: "dd112935-bb0f-4645-bb19-49a1418ba692", OriginalUrl: "http://tdbju0uipsn1ng.com/xirnkpgj9cvjyn/x2jdb5h9ltw"},
+				{CorrelationId: "2cfbbb87-643c-4dfa-a4c4-a40b9213188f", OriginalUrl: "http://tdbju0uipsn1ng.com/xirnkpgj9cvjyn/x2jdb5h9ltw"},
+			},
+			want: want{
+				statusCode: http.StatusConflict,
+				result: []*proto.ResultBatchShortLink{
+					{CorrelationId: "dd112935-bb0f-4645-bb19-49a1418ba692", ShortUrl: "http://example.com/QYsTVwgznh"},
+					{CorrelationId: "2cfbbb87-643c-4dfa-a4c4-a40b9213188f", ShortUrl: "http://example.com/QYsTVwgznh"},
+				},
+			},
+		},
+	}
+
+	client, ctx, conn := setupGRPCClient()
+
+	defer conn.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			response, err := client.PostBatchURLs(ctx, &proto.PostBatchShortLinkRequest{Auth: tt.auth, Urls: tt.items})
+
+			if err != nil {
+				t.Fatalf("PostBatchURLs failed: %v", err)
+			}
+
+			if code := tt.want.statusCode; code != int(response.Code) {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, code, int(response.Code))
+			}
+
+			if urls := tt.want.result; !reflect.DeepEqual(urls, response.Results) {
+				t.Errorf("%v: Urls = '%v', want = '%v'", tt.name, urls, response.Results)
 			}
 		})
 	}

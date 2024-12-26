@@ -4,6 +4,7 @@ import (
 	"io"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/middleware"
+	"sanbright/go_shortener/internal/app/proto"
 	"strings"
 	"testing"
 
@@ -155,6 +156,65 @@ func TestPostApiShortLinkHandler_Handle(t *testing.T) {
 			if tb := tt.want.body; tb != string(body) {
 				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tb, string(body))
 			}
+		})
+	}
+}
+
+func TestPostApiShortLinkHandler_GRPC(t *testing.T) {
+
+	type want struct {
+		statusCode int
+		body       string
+	}
+
+	tests := []struct {
+		name        string
+		auth        string
+		contentType string
+		url         string
+		want        want
+	}{
+		{
+			name: "SuccessAppendShortLink",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			url:  "https://google.com/test",
+			want: want{
+				statusCode: http.StatusCreated,
+				body:       "http://example.com/QYsTVwgznh",
+			},
+		},
+		{
+			name: "ConflictAppendShortLink",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			url:  "https://google.com/test",
+			want: want{
+				statusCode: http.StatusConflict,
+				body:       "http://example.com/QYsTVwgznh",
+			},
+		},
+	}
+
+	client, ctx, conn := setupGRPCClient()
+
+	defer conn.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Run(tt.name, func(t *testing.T) {
+				response, err := client.PostAPI(ctx, &proto.PostAPIRequest{Auth: tt.auth, Url: tt.url})
+
+				if err != nil {
+					t.Fatalf("PostAPI failed: %v", err)
+				}
+
+				if code := tt.want.statusCode; code != int(response.Code) {
+					t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, code, int(response.Code))
+				}
+
+				if urls := tt.want.body; urls != response.ShortUrl {
+					t.Errorf("%v: Urls = '%v', want = '%v'", tt.name, urls, response.ShortUrl)
+				}
+			})
 		})
 	}
 }

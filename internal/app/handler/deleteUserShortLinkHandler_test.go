@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"sanbright/go_shortener/internal/app/generator"
 	"sanbright/go_shortener/internal/app/middleware"
+	"sanbright/go_shortener/internal/app/proto"
 	"sanbright/go_shortener/internal/app/repository"
 	"sanbright/go_shortener/internal/app/service"
 	"strings"
@@ -144,6 +145,68 @@ func TestDeleteUserShortLinkHandler_Handle(t *testing.T) {
 
 			if tbody := tt.want.body; tbody != string(body) {
 				t.Errorf("%v: Content = '%v', want = '%v'", tt.name, tbody, string(body))
+			}
+		})
+	}
+}
+
+func TestDeleteUserShortLinkHandler_GRPC(t *testing.T) {
+	type want struct {
+		statusCode int
+		body       string
+		location   string
+	}
+
+	tests := []struct {
+		name        string
+		auth        string
+		contentType string
+		urls        []string
+		want        want
+	}{
+		{
+			name: "SuccessRemoveUserShortLink_1",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			urls: []string{"iqwnmqw9001"},
+			want: want{
+				statusCode: http.StatusAccepted,
+				body:       "",
+			},
+		},
+		{
+			name: "SuccessRemoveUserShortLink_2",
+			auth: "I8LumVeMYJlq8pNoeeY0s1EzbMS90OFaFnH0uXYKv3I7FEbDBSDPMvRjLDgVZx3Q8wGSGA==",
+			urls: []string{"iqwnmqw9001", "hj3393893fn"},
+			want: want{
+				statusCode: http.StatusAccepted,
+				body:       "",
+			},
+		},
+		{
+			name: "FailRemoveUserShortLink",
+			auth: "1FLRobWnu0pYInXBHnJmU8T3GOvB86FawJeOUdZDVYBg+invalid==",
+			urls: []string{},
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "{\"Offset\":0}",
+			},
+		},
+	}
+
+	client, ctx, conn := setupGRPCClient()
+
+	defer conn.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			response, err := client.DeleteURLs(ctx, &proto.DeleteRequest{Urls: tt.urls, Auth: tt.auth})
+
+			if err != nil {
+				t.Fatalf("DeleteURLs failed: %v", err)
+			}
+
+			if code := tt.want.statusCode; code != int(response.Code) {
+				t.Errorf("%v: StatusCode = '%v', want = '%v'", tt.name, code, int(response.Code))
 			}
 		})
 	}
