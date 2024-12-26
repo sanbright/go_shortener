@@ -2,6 +2,7 @@ package handler
 
 import (
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"log"
 	"net"
@@ -51,7 +52,15 @@ func (generator *MockShortLinkGenerator) UniqGenerate() string {
 
 func setupGRPCClient() (proto.ServiceClient, context.Context, *grpc.ClientConn) {
 	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
+
+	conn, err := grpc.NewClient(
+		"passthrough:bufnet",
+		grpc.WithContextDialer(
+			bufDialer,
+		),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
 	if err != nil {
 		log.Fatalf("Failed to dial bufnet: %v", err)
 	}
